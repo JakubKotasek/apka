@@ -24,7 +24,6 @@
     <div class="container">
         <h1>Plank Tracker ⏱️</h1>
 
-        <!-- Sekce pro výběr a přidání uživatele -->
         <div id="setup-section">
             <select id="user-select">
                 <option value="">-- Kdo jde cvičit? --</option>
@@ -36,7 +35,6 @@
             <button onclick="addUser()">Přidat nového člověka</button>
         </div>
 
-        <!-- Sekce samotného cvičení -->
         <div id="workout-section" style="display:none;">
             <h2 id="current-user-display" style="color: #2196f3;"></h2>
             <div id="countdown-display" class="countdown"></div>
@@ -48,33 +46,27 @@
             <button onclick="changeUser()" style="background: transparent; color: #888; margin-top: 20px;">Zpět na výběr osoby</button>
         </div>
 
-        <!-- Statistiky -->
         <div class="stats">
             <h3 style="margin-top:0;">Statistiky</h3>
             <div id="stats-list">Načítám data...</div>
         </div>
     </div>
 
-    <!-- Knihovny pro Firebase (Cloudová databáze) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script>
-        // ======= ZDE VLOŽÍŠ SVŮJ FIREBASE CONFIG =======
-        // Bez tohoto kroku se data nebudou sdílet přes cloud!
         const firebaseConfig = {
-  apiKey: "AIzaSyCsagLks4YBVwm9dc2l6PmfvMex5N7U_90",
-  authDomain: "plank-fbddb.firebaseapp.com",
-  databaseURL: "https://plank-fbddb-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "plank-fbddb",
-  storageBucket: "plank-fbddb.firebasestorage.app",
-  messagingSenderId: "825438354813",
-  appId: "1:825438354813:web:4ee1c56c2b88163996e014",
-  measurementId: "G-V8KPY0Y0ZP"
-};
-        // ===============================================
+          apiKey: "AIzaSyCsagLks4YBVwm9dc2l6PmfvMex5N7U_90",
+          authDomain: "plank-fbddb.firebaseapp.com",
+          databaseURL: "https://plank-fbddb-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "plank-fbddb",
+          storageBucket: "plank-fbddb.firebasestorage.app",
+          messagingSenderId: "825438354813",
+          appId: "1:825438354813:web:4ee1c56c2b88163996e014",
+          measurementId: "G-V8KPY0Y0ZP"
+        };
 
-        // Inicializace Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
@@ -109,7 +101,6 @@
             return `${m}m ${s}s`;
         }
 
-        // Posluchač změn v databázi (Realtime aktualizace)
         db.ref('users').on('value', (snapshot) => {
             const users = snapshot.val() || {};
             const selectedVal = userSelect.value;
@@ -136,7 +127,6 @@
             if(selectedVal) userSelect.value = selectedVal;
         });
 
-        // Výběr uživatele
         userSelect.addEventListener('change', (e) => {
             if(e.target.value) {
                 currentUser = e.target.value;
@@ -199,7 +189,6 @@
             isPlanking = false;
             stopBtn.style.display = 'none';
             
-            // Uložení do cloudu
             db.ref(`users/${currentUser}`).once('value').then(snapshot => {
                 const data = snapshot.val();
                 const newTotal = (data.totalTime || 0) + secondsElapsed;
@@ -223,4 +212,3 @@
     </script>
 </body>
 </html>
-
