@@ -15,15 +15,29 @@
         .timer { font-size: 70px; font-weight: bold; margin: 20px 0; font-variant-numeric: tabular-nums; }
         .stats { text-align: left; margin-top: 30px; background: #2a2a2a; padding: 15px; border-radius: 8px; }
         .countdown { color: #ffeb3b; font-size: 30px; min-height: 40px; margin-top: 10px; }
-        .stat-item { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #444; }
+        .stat-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #444; display: flex; align-items: center; justify-content: space-between; }
         .stat-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         .stat-name { font-size: 1.2em; font-weight: bold; margin-bottom: 5px; }
+        .rank { font-size: 1.5em; font-weight: bold; color: #888; margin-right: 15px; width: 30px; text-align: center; }
+        .crown { color: gold; font-size: 1.5em; }
+        
+        /* Styly pro Rest Days čtverečky */
+        .days-container { display: flex; justify-content: space-between; margin: 15px 0; background: #2a2a2a; padding: 10px; border-radius: 8px;}
+        .day-box { width: 35px; height: 35px; background: #444; border-radius: 5px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; user-select: none; transition: 0.2s; }
+        .day-box.rest { background: #2196f3; color: white; box-shadow: 0 0 8px rgba(33, 150, 243, 0.5); }
+        .days-label { font-size: 12px; color: #aaa; margin-bottom: 5px; text-align: left; }
+        
+        .streak-badge { background: #ff9800; color: #000; padding: 3px 8px; border-radius: 12px; font-size: 14px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; margin-left: 10px;}
+        
+        /* Nový styl pro neviditelná tlačítka */
+        .text-btn { background: transparent; margin-top: 10px; padding: 8px; font-size: 14px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Plank Tracker ⏱️</h1>
 
+        <!-- Setup sekce -->
         <div id="setup-section">
             <select id="user-select">
                 <option value="">-- Kdo jde cvičit? --</option>
@@ -35,27 +49,45 @@
             <button onclick="addUser()">Přidat nového člověka</button>
         </div>
 
+        <!-- Workout sekce -->
         <div id="workout-section" style="display:none;">
-            <h2 id="current-user-display" style="color: #2196f3;"></h2>
+            <h2 id="current-user-display" style="color: #4caf50; display: flex; justify-content: center; align-items: center;"></h2>
+            
+            <!-- Nastavení Rest Days -->
+            <div class="days-label">Tvoje dny odpočinku (kliknutím zmodrá = rest day):</div>
+            <div class="days-container" id="rest-days-container">
+                <div class="day-box" data-day="0">Po</div>
+                <div class="day-box" data-day="1">Út</div>
+                <div class="day-box" data-day="2">St</div>
+                <div class="day-box" data-day="3">Čt</div>
+                <div class="day-box" data-day="4">Pá</div>
+                <div class="day-box" data-day="5">So</div>
+                <div class="day-box" data-day="6">Ne</div>
+            </div>
+
             <div id="countdown-display" class="countdown"></div>
             <div class="timer" id="timer-display">00:00</div>
             
             <button id="start-btn" onclick="startCountdown()" style="height: 60px; font-size: 18px;">START (3s příprava)</button>
             <button id="stop-btn" class="stop" onclick="stopTimer()" style="display:none;">Konec planku (Uložit)</button>
             
-            <button onclick="changeUser()" style="background: transparent; color: #888; margin-top: 20px;">Zpět na výběr osoby</button>
+            <button class="text-btn" onclick="changeUser()" style="color: #888; margin-top: 20px;">Zpět na výběr osoby</button>
+            <button class="text-btn" onclick="deleteUser()" style="color: #f44336;">🗑️ Smazat profil</button>
         </div>
 
+        <!-- Statistiky / Síň slávy -->
         <div class="stats">
-            <h3 style="margin-top:0;">Statistiky</h3>
+            <h3 style="margin-top:0; color: #ffeb3b;">🏆 Síň slávy (dle celkového času)</h3>
             <div id="stats-list">Načítám data...</div>
         </div>
     </div>
 
+    <!-- Firebase knihovny -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script>
+        // Tvoje skutečná Firebase konfigurace
         const firebaseConfig = {
           apiKey: "AIzaSyCsagLks4YBVwm9dc2l6PmfvMex5N7U_90",
           authDomain: "plank-fbddb.firebaseapp.com",
@@ -76,9 +108,9 @@
         let timerInterval, countdownInterval;
         let secondsElapsed = 0;
         let isPlanking = false;
+        let allUsersData = {}; // Uložíme si data pro logiku
 
         const userSelect = document.getElementById('user-select');
-        const newUserNameInput = document.getElementById('new-user-name');
         const setupSection = document.getElementById('setup-section');
         const workoutSection = document.getElementById('workout-section');
         const currentUserDisplay = document.getElementById('current-user-display');
@@ -87,6 +119,7 @@
         const startBtn = document.getElementById('start-btn');
         const stopBtn = document.getElementById('stop-btn');
         const statsList = document.getElementById('stats-list');
+        const dayBoxes = document.querySelectorAll('.day-box');
 
         function formatTime(totalSeconds) {
             const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
@@ -101,30 +134,119 @@
             return `${m}m ${s}s`;
         }
 
+        // Pomocná funkce: Vypočítá, zda streak trvá (zohlední Rest Days)
+        function calculateCurrentStreak(userData) {
+            let streak = userData.streak || 0;
+            if (!userData.lastDate || streak === 0) return 0;
+            
+            let today = new Date();
+            today.setHours(0,0,0,0);
+            let lastDate = new Date(userData.lastDate);
+            lastDate.setHours(0,0,0,0);
+            
+            let diffDays = Math.round((today - lastDate) / (1000 * 60 * 60 * 24));
+            let restDays = userData.restDays || [false,false,false,false,false,false,false]; // Po-Ne
+            
+            if (diffDays <= 1) return streak; // Dnes nebo včera odcvičeno = streak trvá
+
+            // Pokud uteklo více dní, zjistíme, jestli to byly jen rest days
+            for (let i = 1; i < diffDays; i++) {
+                let checkDate = new Date(lastDate);
+                checkDate.setDate(checkDate.getDate() + i);
+                // getDay() vrací Ne=0, Po=1... převedeme na Po=0, Ne=6
+                let dayOfWeek = (checkDate.getDay() + 6) % 7; 
+                if (!restDays[dayOfWeek]) {
+                    return 0; // Pokud vynechal den, co nebyl Rest Day, streak padá
+                }
+            }
+            return streak; // Všechny zameškané dny byly modré (odpočinkové) = streak zachráněn!
+        }
+
+        // Posluchač databáze
         db.ref('users').on('value', (snapshot) => {
-            const users = snapshot.val() || {};
+            allUsersData = snapshot.val() || {};
             const selectedVal = userSelect.value;
             
             userSelect.innerHTML = '<option value="">-- Kdo jde cvičit? --</option>';
-            let statsHtml = '';
+            
+            // Převedeme do pole a seřadíme podle celkového času (Síň slávy)
+            let usersArray = Object.keys(allUsersData).map(key => {
+                return { id: key, ...allUsersData[key], displayStreak: calculateCurrentStreak(allUsersData[key]) };
+            });
+            usersArray.sort((a, b) => (b.totalTime || 0) - (a.totalTime || 0));
 
-            for (const [id, data] of Object.entries(users)) {
+            let statsHtml = '';
+            usersArray.forEach((user, index) => {
+                // Přidání do výběru
                 const option = document.createElement('option');
-                option.value = id;
-                option.textContent = data.name;
+                option.value = user.id;
+                option.textContent = user.name;
                 userSelect.appendChild(option);
+
+                // Hodnost (Korunka pro 1. místo)
+                let rankVisual = index === 0 ? '<span class="crown">👑</span>' : `<span class="rank">${index + 1}.</span>`;
+                let streakVisual = user.displayStreak > 0 ? `<span class="streak-badge">🔥 ${user.displayStreak}</span>` : '';
 
                 statsHtml += `
                     <div class="stat-item">
-                        <div class="stat-name">${data.name}</div>
-                        <span style="color: #aaa;">Celkem odplankováno: </span><strong style="color:white;">${formatTimeLong(data.totalTime || 0)}</strong><br>
-                        <span style="color: #aaa;">Nejdelší výdrž: </span><strong style="color:#ffeb3b;">${formatTimeLong(data.longestPlank || 0)}</strong>
+                        <div style="display:flex; align-items: center;">
+                            ${rankVisual}
+                            <div>
+                                <div class="stat-name">${user.name} ${streakVisual}</div>
+                                <div style="font-size: 0.9em;">
+                                    <span style="color: #aaa;">Celkem: </span><strong style="color:white;">${formatTimeLong(user.totalTime || 0)}</strong> | 
+                                    <span style="color: #aaa;">Max: </span><strong style="color:#ffeb3b;">${formatTimeLong(user.longestPlank || 0)}</strong>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 `;
+            });
+            
+            statsList.innerHTML = usersArray.length === 0 ? 'Zatím žádná data.' : statsHtml;
+            
+            // Obnovení výběru, pokud smazaný uživatel už neexistuje, přesuneme na začátek
+            if(selectedVal && allUsersData[selectedVal]) {
+                userSelect.value = selectedVal;
+            } else if (selectedVal && !allUsersData[selectedVal]) {
+                changeUser();
             }
             
-            statsList.innerHTML = Object.keys(users).length === 0 ? 'Zatím žádná data. Přidej prvního člověka!' : statsHtml;
-            if(selectedVal) userSelect.value = selectedVal;
+            if (currentUser && allUsersData[currentUser]) {
+                updateUIForCurrentUser();
+            }
+        });
+
+        function updateUIForCurrentUser() {
+            const data = allUsersData[currentUser];
+            if(!data) return;
+            
+            let currentStreak = calculateCurrentStreak(data);
+            let streakVisual = currentStreak > 0 ? `<span class="streak-badge">🔥 ${currentStreak}</span>` : '';
+            currentUserDisplay.innerHTML = `${data.name} ${streakVisual}`;
+
+            let restDays = data.restDays || [false,false,false,false,false,false,false];
+            dayBoxes.forEach(box => {
+                let dayIndex = parseInt(box.getAttribute('data-day'));
+                if (restDays[dayIndex]) {
+                    box.classList.add('rest');
+                } else {
+                    box.classList.remove('rest');
+                }
+            });
+        }
+
+        // Přepínání Rest Days (Kliknutí na čtvereček)
+        dayBoxes.forEach(box => {
+            box.addEventListener('click', () => {
+                if (!currentUser || !allUsersData[currentUser]) return;
+                let dayIndex = parseInt(box.getAttribute('data-day'));
+                let restDays = allUsersData[currentUser].restDays || [false,false,false,false,false,false,false];
+                restDays[dayIndex] = !restDays[dayIndex]; // Přepnutí stavu
+                
+                // Okamžité uložení do cloudu
+                db.ref(`users/${currentUser}`).update({ restDays: restDays });
+            });
         });
 
         userSelect.addEventListener('change', (e) => {
@@ -132,7 +254,7 @@
                 currentUser = e.target.value;
                 setupSection.style.display = 'none';
                 workoutSection.style.display = 'block';
-                currentUserDisplay.textContent = userSelect.options[userSelect.selectedIndex].text;
+                updateUIForCurrentUser();
             }
         });
 
@@ -145,12 +267,31 @@
         }
 
         function addUser() {
-            const name = newUserNameInput.value.trim();
+            const name = document.getElementById('new-user-name').value.trim();
             if (!name) return alert("Zadej jméno!");
             
-            db.ref('users').push({ name: name, totalTime: 0, longestPlank: 0 })
-              .then(() => newUserNameInput.value = '')
+            db.ref('users').push({ 
+                name: name, 
+                totalTime: 0, 
+                longestPlank: 0,
+                streak: 0,
+                lastDate: null,
+                restDays: [false,false,false,false,false,false,false]
+            }).then(() => document.getElementById('new-user-name').value = '')
               .catch(err => alert("Chyba: " + err.message));
+        }
+
+        function deleteUser() {
+            if (!currentUser) return;
+            // Potvrzovací dialog proti smazání omylem
+            if (confirm("Opravdu chceš smazat svůj profil? Tuto akci nelze vrátit zpět a všechny časy i ohníčky zmizí!")) {
+                db.ref(`users/${currentUser}`).remove()
+                  .then(() => {
+                      alert("Profil byl úspěšně smazán.");
+                      changeUser(); // Návrat na hlavní obrazovku
+                  })
+                  .catch(err => alert("Chyba při mazání: " + err.message));
+            }
         }
 
         function startCountdown() {
@@ -189,12 +330,25 @@
             isPlanking = false;
             stopBtn.style.display = 'none';
             
-            db.ref(`users/${currentUser}`).once('value').then(snapshot => {
-                const data = snapshot.val();
-                const newTotal = (data.totalTime || 0) + secondsElapsed;
-                const newLongest = Math.max(data.longestPlank || 0, secondsElapsed);
-                
-                return db.ref(`users/${currentUser}`).update({ totalTime: newTotal, longestPlank: newLongest });
+            const data = allUsersData[currentUser];
+            if (!data) return;
+
+            const newTotal = (data.totalTime || 0) + secondsElapsed;
+            const newLongest = Math.max(data.longestPlank || 0, secondsElapsed);
+            
+            // Logika pro streak
+            let todayStr = new Date().toLocaleDateString('en-CA'); // Formát RRRR-MM-DD
+            let currentStreak = calculateCurrentStreak(data);
+            
+            if (data.lastDate !== todayStr) {
+                currentStreak += 1; // Pokud dnes cvičí poprvé, přičteme plamínek
+            }
+
+            db.ref(`users/${currentUser}`).update({ 
+                totalTime: newTotal, 
+                longestPlank: newLongest,
+                streak: currentStreak,
+                lastDate: todayStr
             }).then(() => {
                 alert(`Skvělá práce! Čas: ${formatTimeLong(secondsElapsed)}`);
                 resetTimer();
