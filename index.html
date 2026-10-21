@@ -1,1 +1,225 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plank Tracker</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: #fff; text-align: center; margin: 0; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        h1 { color: #4caf50; margin-top: 0; }
+        select, input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: none; font-size: 16px; box-sizing: border-box; }
+        button { background: #4caf50; color: white; cursor: pointer; font-weight: bold; }
+        button:active { opacity: 0.8; }
+        button.stop { background: #f44336; height: 80px; font-size: 20px; }
+        .timer { font-size: 70px; font-weight: bold; margin: 20px 0; font-variant-numeric: tabular-nums; }
+        .stats { text-align: left; margin-top: 30px; background: #2a2a2a; padding: 15px; border-radius: 8px; }
+        .countdown { color: #ffeb3b; font-size: 30px; min-height: 40px; margin-top: 10px; }
+        .stat-item { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #444; }
+        .stat-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .stat-name { font-size: 1.2em; font-weight: bold; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Plank Tracker ⏱️</h1>
+
+        <!-- Sekce pro výběr a přidání uživatele -->
+        <div id="setup-section">
+            <select id="user-select">
+                <option value="">-- Kdo jde cvičit? --</option>
+            </select>
+
+            <hr style="border-color: #444; margin: 20px 0;">
+            
+            <input type="text" id="new-user-name" placeholder="Nové jméno (např. Barbora)">
+            <button onclick="addUser()">Přidat nového člověka</button>
+        </div>
+
+        <!-- Sekce samotného cvičení -->
+        <div id="workout-section" style="display:none;">
+            <h2 id="current-user-display" style="color: #2196f3;"></h2>
+            <div id="countdown-display" class="countdown"></div>
+            <div class="timer" id="timer-display">00:00</div>
+            
+            <button id="start-btn" onclick="startCountdown()" style="height: 60px; font-size: 18px;">START (3s příprava)</button>
+            <button id="stop-btn" class="stop" onclick="stopTimer()" style="display:none;">Konec planku (Uložit)</button>
+            
+            <button onclick="changeUser()" style="background: transparent; color: #888; margin-top: 20px;">Zpět na výběr osoby</button>
+        </div>
+
+        <!-- Statistiky -->
+        <div class="stats">
+            <h3 style="margin-top:0;">Statistiky</h3>
+            <div id="stats-list">Načítám data...</div>
+        </div>
+    </div>
+
+    <!-- Knihovny pro Firebase (Cloudová databáze) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        // ======= ZDE VLOŽÍŠ SVŮJ FIREBASE CONFIG =======
+        // Bez tohoto kroku se data nebudou sdílet přes cloud!
+        const firebaseConfig = {
+            apiKey: "TVUJ_API_KEY",
+            authDomain: "tvuj-projekt.firebaseapp.com",
+            databaseURL: "https://tvuj-projekt-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "tvuj-projekt",
+            storageBucket: "tvuj-projekt.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "TVOJE_APP_ID"
+        };
+        // ===============================================
+
+        // Inicializace Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        let currentUser = null;
+        let timerInterval, countdownInterval;
+        let secondsElapsed = 0;
+        let isPlanking = false;
+
+        const userSelect = document.getElementById('user-select');
+        const newUserNameInput = document.getElementById('new-user-name');
+        const setupSection = document.getElementById('setup-section');
+        const workoutSection = document.getElementById('workout-section');
+        const currentUserDisplay = document.getElementById('current-user-display');
+        const timerDisplay = document.getElementById('timer-display');
+        const countdownDisplay = document.getElementById('countdown-display');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const statsList = document.getElementById('stats-list');
+
+        function formatTime(totalSeconds) {
+            const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const s = (totalSeconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function formatTimeLong(totalSeconds) {
+            const m = Math.floor(totalSeconds / 60);
+            const s = totalSeconds % 60;
+            if (m === 0) return `${s}s`;
+            return `${m}m ${s}s`;
+        }
+
+        // Posluchač změn v databázi (Realtime aktualizace)
+        db.ref('users').on('value', (snapshot) => {
+            const users = snapshot.val() || {};
+            const selectedVal = userSelect.value;
+            
+            userSelect.innerHTML = '<option value="">-- Kdo jde cvičit? --</option>';
+            let statsHtml = '';
+
+            for (const [id, data] of Object.entries(users)) {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = data.name;
+                userSelect.appendChild(option);
+
+                statsHtml += `
+                    <div class="stat-item">
+                        <div class="stat-name">${data.name}</div>
+                        <span style="color: #aaa;">Celkem odplankováno: </span><strong style="color:white;">${formatTimeLong(data.totalTime || 0)}</strong><br>
+                        <span style="color: #aaa;">Nejdelší výdrž: </span><strong style="color:#ffeb3b;">${formatTimeLong(data.longestPlank || 0)}</strong>
+                    </div>
+                `;
+            }
+            
+            statsList.innerHTML = Object.keys(users).length === 0 ? 'Zatím žádná data. Přidej prvního člověka!' : statsHtml;
+            if(selectedVal) userSelect.value = selectedVal;
+        });
+
+        // Výběr uživatele
+        userSelect.addEventListener('change', (e) => {
+            if(e.target.value) {
+                currentUser = e.target.value;
+                setupSection.style.display = 'none';
+                workoutSection.style.display = 'block';
+                currentUserDisplay.textContent = userSelect.options[userSelect.selectedIndex].text;
+            }
+        });
+
+        function changeUser() {
+            currentUser = null;
+            setupSection.style.display = 'block';
+            workoutSection.style.display = 'none';
+            userSelect.value = "";
+            resetTimer();
+        }
+
+        function addUser() {
+            const name = newUserNameInput.value.trim();
+            if (!name) return alert("Zadej jméno!");
+            
+            db.ref('users').push({ name: name, totalTime: 0, longestPlank: 0 })
+              .then(() => newUserNameInput.value = '')
+              .catch(err => alert("Chyba: " + err.message));
+        }
+
+        function startCountdown() {
+            startBtn.style.display = 'none';
+            let count = 3;
+            countdownDisplay.textContent = `Připrav se... ${count}`;
+            
+            countdownInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    countdownDisplay.textContent = `Připrav se... ${count}`;
+                } else {
+                    clearInterval(countdownInterval);
+                    countdownDisplay.textContent = "🔥 JEĎ! 🔥";
+                    setTimeout(() => countdownDisplay.textContent = "", 1500);
+                    startPlank();
+                }
+            }, 1000);
+        }
+
+        function startPlank() {
+            isPlanking = true;
+            stopBtn.style.display = 'inline-block';
+            secondsElapsed = 0;
+            timerDisplay.textContent = "00:00";
+            
+            timerInterval = setInterval(() => {
+                secondsElapsed++;
+                timerDisplay.textContent = formatTime(secondsElapsed);
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (!isPlanking) return;
+            clearInterval(timerInterval);
+            isPlanking = false;
+            stopBtn.style.display = 'none';
+            
+            // Uložení do cloudu
+            db.ref(`users/${currentUser}`).once('value').then(snapshot => {
+                const data = snapshot.val();
+                const newTotal = (data.totalTime || 0) + secondsElapsed;
+                const newLongest = Math.max(data.longestPlank || 0, secondsElapsed);
+                
+                return db.ref(`users/${currentUser}`).update({ totalTime: newTotal, longestPlank: newLongest });
+            }).then(() => {
+                alert(`Skvělá práce! Čas: ${formatTimeLong(secondsElapsed)}`);
+                resetTimer();
+                startBtn.style.display = 'inline-block';
+            });
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            clearInterval(countdownInterval);
+            secondsElapsed = 0;
+            timerDisplay.textContent = "00:00";
+            countdownDisplay.textContent = "";
+        }
+    </script>
+</body>
+</html>
 
