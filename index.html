@@ -19,18 +19,35 @@
         .countdown { color: #ffeb3b; font-size: 30px; min-height: 40px; margin-top: 10px; }
         
         .stats { text-align: left; margin-top: 20px; background: #2a2a2a; padding: 15px; border-radius: 8px; }
-        .stat-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #444; display: flex; align-items: center; justify-content: space-between; }
-        .stat-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         
-        /* Zarovnání ranku a korunky */
-        .rank-box { width: 35px; text-align: center; font-size: 1.4em; font-weight: bold; color: #888; margin-right: 15px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
+        /* Nové zobrazení Síň slávy */
+        .tabs { display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
+        .tab-btn { flex: 1; background: #333; padding: 8px 5px; font-size: 12px; border-radius: 5px; margin: 0; white-space: nowrap; }
+        .tab-btn.active { background: #4caf50; color: white; }
+        
+        .stat-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #444; display: flex; align-items: flex-start; justify-content: space-between; }
+        .stat-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .rank-box { width: 35px; text-align: center; font-size: 1.4em; font-weight: bold; color: #888; margin-right: 10px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; margin-top: 5px;}
         .rank-box.crown { color: gold; font-size: 1.6em; }
         
+        .player-info { flex-grow: 1; display: flex; flex-direction: column; text-align: left; }
+        .player-name-row { font-weight: bold; font-size: 1.1em; margin-bottom: 5px; display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .status-today { background: #4caf50; box-shadow: 0 0 5px #4caf50; }
+        .status-yesterday { background: #ffeb3b; }
+        .status-sleep { background: #f44336; }
+        
+        .stat-main-val { font-size: 1.2em; font-weight: bold; color: white; }
+        .stat-sub-val { font-size: 0.85em; color: #aaa; margin-top: 2px; }
+        .diff-text { font-size: 0.75em; color: #ff9800; margin-top: 4px; font-weight: bold; }
+        
+        .view-profile-btn { background: #333; color: #fff; font-size: 12px; padding: 5px 10px; border-radius: 5px; width: auto; margin: 0; margin-top: 5px; height: fit-content;}
+        
+        /* Zbytek (profil atd.) */
         .profile-header { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px; }
         .avatar-btn { background: #333; font-size: 40px; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; margin: 0; padding: 0; border: 2px solid #4caf50; flex-shrink: 0; }
         .level-badge { background: #ffeb3b; color: #000; padding: 5px 10px; border-radius: 15px; font-size: 14px; font-weight: bold; margin-bottom: 15px; display: inline-block; }
         
-        /* Nové zobrazení Achievementů */
         .achievements-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin: 15px 0; }
         .ach-box { background: #333; border-radius: 8px; padding: 8px 5px; text-align: center; font-size: 24px; opacity: 0.3; filter: grayscale(100%); transition: 0.3s; position: relative; }
         .ach-box.unlocked { opacity: 1; filter: grayscale(0%); background: #3a4a3a; box-shadow: 0 0 5px rgba(76, 175, 80, 0.3); border: 1px solid #4caf50; }
@@ -44,7 +61,6 @@
         .history-list { max-height: 150px; overflow-y: auto; background: #222; padding: 10px; border-radius: 8px; text-align: left; margin-bottom: 15px; }
         .history-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #444; font-size: 14px; }
         .del-btn { background: transparent; color: #f44336; padding: 2px 5px; margin: 0; width: auto; font-size: 12px; }
-        .view-profile-btn { background: #333; color: #fff; font-size: 12px; padding: 5px 10px; border-radius: 5px; width: auto; margin: 0; }
     </style>
 </head>
 <body>
@@ -61,13 +77,28 @@
             <button onclick="addUser()">Přidat nového člověka</button>
             
             <div class="stats">
-                <h3 style="margin-top:0; color: #ffeb3b;">🏆 Síň slávy</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="margin:0; color: #ffeb3b;">🏆 Síň slávy</h3>
+                    <div style="font-size: 10px; color: #888;">
+                        <span class="status-dot status-today" style="width:8px;height:8px;"></span> Dnes 
+                        <span class="status-dot status-yesterday" style="width:8px;height:8px;margin-left:5px;"></span> Včera
+                    </div>
+                </div>
+                
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="changeLeaderboard('total', this)">Celkově</button>
+                    <button class="tab-btn" onclick="changeLeaderboard('month', this)">Tento měsíc</button>
+                    <button class="tab-btn" onclick="changeLeaderboard('max', this)">Max Výdrž</button>
+                    <button class="tab-btn" onclick="changeLeaderboard('streak', this)">Série 🔥</button>
+                </div>
+                
                 <div id="stats-list">Načítám data...</div>
             </div>
         </div>
 
         <!-- 2. TVŮJ PROFIL -->
         <div id="profile-section" style="display:none;">
+            <!-- ... (identické jako v předchozí verzi) ... -->
             <div class="profile-header">
                 <button class="avatar-btn" id="avatar-display" onclick="changeAvatar()"></button>
                 <div style="text-align: left;">
@@ -75,12 +106,9 @@
                     <span id="streak-display" style="color: #ff9800; font-weight: bold; font-size: 14px;"></span>
                 </div>
             </div>
-            
             <div id="level-display" class="level-badge"></div>
-
             <button onclick="goToWorkout()" style="font-size: 18px; padding: 15px; margin-bottom: 15px;">JÍT CVIČIT 💪</button>
 
-            <!-- Vitrína trofejí -->
             <div style="text-align: left; font-weight: bold; color: #ffeb3b; margin-top: 10px;">🏅 Tvoje Vitrína</div>
             <div id="my-achievements-container" style="background: #222; padding: 10px; border-radius: 8px; margin-top: 5px; max-height: 250px; overflow-y: auto;"></div>
 
@@ -104,18 +132,18 @@
 
         <!-- 3. OBRAZOVKA CVIČENÍ -->
         <div id="workout-section" style="display:none;">
+            <!-- ... (identické jako v předchozí verzi) ... -->
             <h2 id="workout-user-name" style="color: #4caf50;"></h2>
             <div id="countdown-display" class="countdown"></div>
             <div class="timer" id="timer-display">00:00</div>
-            
             <button id="start-btn" onclick="startCountdown()" style="height: 60px; font-size: 18px;">START (3s příprava)</button>
             <button id="stop-btn" class="stop" onclick="stopTimer()" style="display:none;">Konec planku</button>
-            
             <button class="text-btn" id="cancel-btn" onclick="cancelWorkout()" style="margin-top: 20px;">Zrušit (Nezapočítávat)</button>
         </div>
 
-        <!-- 4. VEŘEJNÝ PROFIL JINÉHO HRÁČE -->
+        <!-- 4. VEŘEJNÝ PROFIL -->
         <div id="public-profile-section" style="display:none;">
+            <!-- ... (identické jako v předchozí verzi) ... -->
             <div class="profile-header">
                 <div class="avatar-btn" id="pub-avatar-display" style="border-color: #888; cursor: default;"></div>
                 <div style="text-align: left;">
@@ -124,7 +152,6 @@
                 </div>
             </div>
             <div id="pub-level-display" class="level-badge" style="background:#555; color:#fff;"></div>
-            
             <div class="stats" style="margin-top: 10px;">
                 <div style="display: flex; justify-content: space-around; text-align: center;">
                     <div><div style="font-size:12px; color:#aaa;">Celkem</div><strong id="pub-total-time"></strong></div>
@@ -132,10 +159,8 @@
                     <div><div style="font-size:12px; color:#aaa;">Tréninků</div><strong id="pub-workout-count"></strong></div>
                 </div>
             </div>
-
             <div style="text-align: left; font-weight: bold; color: #ffeb3b; margin-top: 15px;">🏅 Vitrína hráče</div>
             <div id="pub-achievements-container" style="background: #222; padding: 10px; border-radius: 8px; margin-top: 5px; max-height: 300px; overflow-y: auto;"></div>
-
             <button onclick="closePublicProfile()" style="margin-top: 20px;">Zavřít profil</button>
         </div>
 
@@ -160,14 +185,14 @@
 
         let currentUser = null;
         let allUsersData = {};
+        let currentSort = 'total'; // defaultní řazení žebříčku
         let timerInterval, countdownInterval;
         let secondsElapsed = 0;
         let isPlanking = false;
         const avatars = ['👤', '🦁', '🥷', '🧘‍♀️', '🦾', '🔥', '👑', '👽', '😎', '🦄', '🦖', '🍕'];
 
-        // DEFINICE ACHIEVEMENTŮ
+        // Achievementy zůstávají stejné jako minule
         const ACHIEVEMENTS = [
-            // Max čas v planku
             { id: 'max_1m', cat: 'Nejdelší výdrž', title: '1 min: První milník', icon: '⏱️', req: (d) => (d.longestPlank || 0) >= 60 },
             { id: 'max_2m', cat: 'Nejdelší výdrž', title: '2 min: Slušný základ', icon: '👍', req: (d) => (d.longestPlank || 0) >= 120 },
             { id: 'max_3m', cat: 'Nejdelší výdrž', title: '3 min: Břicho z kamene', icon: '🪨', req: (d) => (d.longestPlank || 0) >= 180 },
@@ -178,7 +203,7 @@
             { id: 'max_15m', cat: 'Nejdelší výdrž', title: '15 min: Strojový kód', icon: '🤖', req: (d) => (d.longestPlank || 0) >= 900 },
             { id: 'max_20m', cat: 'Nejdelší výdrž', title: '20 min: Nadčlověk', icon: '🦸‍♂️', req: (d) => (d.longestPlank || 0) >= 1200 },
             { id: 'max_30m', cat: 'Nejdelší výdrž', title: '30 min: Bůh Planků', icon: '⚡', req: (d) => (d.longestPlank || 0) >= 1800 },
-            // Celkový čas
+            
             { id: 'tot_1h', cat: 'Celkový čas', title: '1h: Pokročilá brambora', icon: '🥔', req: (d) => (d.totalTime || 0) >= 3600 },
             { id: 'tot_2h', cat: 'Celkový čas', title: '2h: Pevný základ', icon: '🏗️', req: (d) => (d.totalTime || 0) >= 7200 },
             { id: 'tot_5h', cat: 'Celkový čas', title: '5h: Ocelový střed', icon: '⚙️', req: (d) => (d.totalTime || 0) >= 18000 },
@@ -187,7 +212,7 @@
             { id: 'tot_48h', cat: 'Celkový čas', title: '48h: Stroj času', icon: '🚀', req: (d) => (d.totalTime || 0) >= 172800 },
             { id: 'tot_72h', cat: 'Celkový čas', title: '72h: Zkamenělina', icon: '🗿', req: (d) => (d.totalTime || 0) >= 259200 },
             { id: 'tot_100h', cat: 'Celkový čas', title: '100h: Magor!', icon: '🤯', req: (d) => (d.totalTime || 0) >= 360000 },
-            // Počet tréninků (historie)
+            
             { id: 'cnt_1', cat: 'Počet tréninků', title: '1. cvičení: První krok', icon: '👶', req: (d) => getWorkoutCount(d) >= 1 },
             { id: 'cnt_5', cat: 'Počet tréninků', title: '5x: Rozcvička', icon: '👟', req: (d) => getWorkoutCount(d) >= 5 },
             { id: 'cnt_10', cat: 'Počet tréninků', title: '10x: Zahřátí', icon: '🔥', req: (d) => getWorkoutCount(d) >= 10 },
@@ -195,25 +220,23 @@
             { id: 'cnt_60', cat: 'Počet tréninků', title: '2 měsíce (60)', icon: '💪', req: (d) => getWorkoutCount(d) >= 60 },
             { id: 'cnt_182', cat: 'Počet tréninků', title: 'Půlrok dřiny (182)', icon: '🏆', req: (d) => getWorkoutCount(d) >= 182 },
             { id: 'cnt_365', cat: 'Počet tréninků', title: 'Rok! Železná disciplína', icon: '👑', req: (d) => getWorkoutCount(d) >= 365 },
-            // Streak
+            
             { id: 'str_5', cat: 'Ohnivá série (Streak)', title: '5 dní: Jiskra', icon: '✨', req: (d) => calculateCurrentStreak(d) >= 5 },
             { id: 'str_10', cat: 'Ohnivá série (Streak)', title: '10 dní: Plamen', icon: '🔥', req: (d) => calculateCurrentStreak(d) >= 10 },
             { id: 'str_30', cat: 'Ohnivá série (Streak)', title: 'Měsíc: Požár', icon: '🚒', req: (d) => calculateCurrentStreak(d) >= 30 },
             { id: 'str_60', cat: 'Ohnivá série (Streak)', title: '2 měsíce: Peklo', icon: '🌋', req: (d) => calculateCurrentStreak(d) >= 60 },
             { id: 'str_182', cat: 'Ohnivá série (Streak)', title: 'Půlrok: Nezastavitelný', icon: '🚂', req: (d) => calculateCurrentStreak(d) >= 182 },
             { id: 'str_365', cat: 'Ohnivá série (Streak)', title: 'Rok: Legenda', icon: '🌠', req: (d) => calculateCurrentStreak(d) >= 365 },
-            // Časová zvířata (tyto se ukládají ručně při splnění, takže check z databáze)
+            
             { id: 'time_morning', cat: 'Časové odznaky', title: 'Ranní ptáče (6-8h)', icon: '🌅', req: (d) => (d.achievements && d.achievements['time_morning']) },
             { id: 'time_night', cat: 'Časové odznaky', title: 'Noční zvíře (20-00h)', icon: '🦉', req: (d) => (d.achievements && d.achievements['time_night']) },
             { id: 'time_insomnia', cat: 'Časové odznaky', title: 'Nespavec (00-6h)', icon: '🦇', req: (d) => (d.achievements && d.achievements['time_insomnia']) }
         ];
 
-        // Zvuky
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination);
             if (type === 'beep') {
                 osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
@@ -227,10 +250,8 @@
             }
         }
 
-        // Pomocné formátování a logika
         function formatTime(sec) {
-            const m = Math.floor(sec / 60).toString().padStart(2, '0');
-            const s = (sec % 60).toString().padStart(2, '0');
+            const m = Math.floor(sec / 60).toString().padStart(2, '0'); const s = (sec % 60).toString().padStart(2, '0');
             return `${m}:${s}`;
         }
         function formatTimeLong(sec) {
@@ -263,27 +284,31 @@
             return streak;
         }
 
-        // VYKRESLENÍ ACHIEVEMENTŮ
+        // Zjistí stav aktivity
+        function getActivityStatus(userData) {
+            if (!userData.lastDate) return 'sleep';
+            let today = new Date(); today.setHours(0,0,0,0);
+            let lastDate = new Date(userData.lastDate); lastDate.setHours(0,0,0,0);
+            let diffDays = Math.round((today - lastDate) / (1000 * 60 * 60 * 24));
+            if (diffDays === 0) return 'today';
+            if (diffDays === 1) return 'yesterday';
+            return 'sleep';
+        }
+
+        // Vykreslení achievementů
         function renderAchievements(containerId, userData) {
             const container = document.getElementById(containerId);
             container.innerHTML = '';
-            
-            // Seskupit podle kategorie
             const categories = {};
             ACHIEVEMENTS.forEach(a => {
                 if(!categories[a.cat]) categories[a.cat] = [];
                 categories[a.cat].push(a);
             });
-
             for (const [catName, achList] of Object.entries(categories)) {
                 let catHtml = `<div class="ach-category-title">${catName}</div><div class="achievements-grid">`;
                 achList.forEach(a => {
                     const isUnlocked = a.req(userData);
-                    catHtml += `
-                        <div class="ach-box ${isUnlocked ? 'unlocked' : ''}" title="${a.title}">
-                            <div>${a.icon}</div>
-                            <div class="ach-title">${a.title}</div>
-                        </div>`;
+                    catHtml += `<div class="ach-box ${isUnlocked ? 'unlocked' : ''}" title="${a.title}"><div>${a.icon}</div><div class="ach-title">${a.title}</div></div>`;
                 });
                 catHtml += `</div>`;
                 container.innerHTML += catHtml;
@@ -293,41 +318,121 @@
         // DB Listener (hlavní načítání)
         db.ref('users').on('value', (snapshot) => {
             allUsersData = snapshot.val() || {};
+            updateLeaderboard();
+            
+            // Aktualizace výběru osob (při změně DB)
             const userSelect = document.getElementById('user-select');
             const selectedVal = userSelect.value;
             userSelect.innerHTML = '<option value="">-- Kdo jde cvičit? --</option>';
+            Object.keys(allUsersData).forEach(key => {
+                const opt = document.createElement('option');
+                opt.value = key; opt.textContent = allUsersData[key].name;
+                userSelect.appendChild(opt);
+            });
+            if(selectedVal && allUsersData[selectedVal]) userSelect.value = selectedVal;
             
-            let usersArray = Object.keys(allUsersData).map(key => ({ id: key, ...allUsersData[key], displayStreak: calculateCurrentStreak(allUsersData[key]) }));
-            usersArray.sort((a, b) => (b.totalTime || 0) - (a.totalTime || 0));
+            if (currentUser && allUsersData[currentUser]) updateProfileUI();
+        });
+
+        // Přepínání záložek v žebříčku
+        function changeLeaderboard(sortType, btnElement) {
+            currentSort = sortType;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btnElement.classList.add('active');
+            updateLeaderboard();
+        }
+
+        // GENERUJE NOVÝ ČISTÝ ŽEBŘÍČEK S DATY
+        function updateLeaderboard() {
+            let usersArray = Object.keys(allUsersData).map(key => {
+                let u = allUsersData[key];
+                let displayStreak = calculateCurrentStreak(u);
+                
+                // Výpočet času Tento Měsíc
+                let thisMonthTime = 0;
+                let now = new Date();
+                if (u.history) {
+                    Object.values(u.history).forEach(log => {
+                        let d = new Date(log.timestamp);
+                        if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+                            thisMonthTime += log.duration;
+                        }
+                    });
+                }
+                
+                return { id: key, ...u, displayStreak, thisMonthTime, actStatus: getActivityStatus(u) };
+            });
+
+            // Globální rekordy pro odznáčky u jmen
+            let globalMaxPlank = Math.max(...usersArray.map(u => u.longestPlank || 0));
+            let globalMaxStreak = Math.max(...usersArray.map(u => u.displayStreak || 0));
+
+            // Řazení podle vybrané záložky
+            usersArray.sort((a, b) => {
+                if (currentSort === 'total') return (b.totalTime || 0) - (a.totalTime || 0);
+                if (currentSort === 'month') return (b.thisMonthTime || 0) - (a.thisMonthTime || 0);
+                if (currentSort === 'max') return (b.longestPlank || 0) - (a.longestPlank || 0);
+                if (currentSort === 'streak') return (b.displayStreak || 0) - (a.displayStreak || 0);
+            });
 
             let statsHtml = '';
             usersArray.forEach((user, index) => {
-                const opt = document.createElement('option');
-                opt.value = user.id; opt.textContent = user.name;
-                userSelect.appendChild(opt);
+                // Hlavní zobrazená hodnota podle záložky
+                let mainStatLabel = ''; let mainStatValue = ''; let subStatText = ''; let diffValue = 0;
+                
+                if (currentSort === 'total') {
+                    mainStatLabel = 'Celkem:'; mainStatValue = formatTimeLong(user.totalTime || 0);
+                    subStatText = `Max: ${formatTimeLong(user.longestPlank || 0)}`;
+                    diffValue = index > 0 ? (usersArray[index-1].totalTime || 0) - (user.totalTime || 0) : 0;
+                } else if (currentSort === 'month') {
+                    mainStatLabel = 'Tento měsíc:'; mainStatValue = formatTimeLong(user.thisMonthTime);
+                    subStatText = `Celkově: ${formatTimeLong(user.totalTime || 0)}`;
+                    diffValue = index > 0 ? usersArray[index-1].thisMonthTime - user.thisMonthTime : 0;
+                } else if (currentSort === 'max') {
+                    mainStatLabel = 'Max výdrž:'; mainStatValue = formatTimeLong(user.longestPlank || 0);
+                    subStatText = `Série: ${user.displayStreak} dní`;
+                    diffValue = index > 0 ? (usersArray[index-1].longestPlank || 0) - (user.longestPlank || 0) : 0;
+                } else if (currentSort === 'streak') {
+                    mainStatLabel = 'Série:'; mainStatValue = `${user.displayStreak} dní`;
+                    subStatText = `Celkem: ${formatTimeLong(user.totalTime || 0)}`;
+                    diffValue = index > 0 ? usersArray[index-1].displayStreak - user.displayStreak : 0;
+                }
 
-                // OPRAVA ZAROVNÁNÍ KORUNKY
+                // Odznáčky absolutních rekordmanů
+                let badges = [];
+                if (currentSort !== 'streak' && user.displayStreak > 0) badges.push(`<span style="background:#ff9800; color:#000; padding:2px 5px; border-radius:8px; font-size:10px;">🔥 ${user.displayStreak}</span>`);
+                if (user.longestPlank > 0 && user.longestPlank === globalMaxPlank) badges.push(`<span title="Nejdelší výdrž ze všech">💪</span>`);
+                if (user.displayStreak > 0 && user.displayStreak === globalMaxStreak) badges.push(`<span title="Největší série ze všech">👑🔥</span>`);
+                
                 let rankVisual = index === 0 ? '<div class="rank-box crown">👑</div>' : `<div class="rank-box">${index + 1}.</div>`;
-                let streakVisual = user.displayStreak > 0 ? `<span style="background:#ff9800; color:#000; padding:2px 6px; border-radius:10px; font-size:12px; font-weight:bold;">🔥 ${user.displayStreak}</span>` : '';
+                
+                // Textový motivátor, kolik chybí
+                let diffTextHtml = '';
+                if (index > 0 && diffValue > 0) {
+                    let diffFormat = currentSort === 'streak' ? `${diffValue} dní` : formatTimeLong(diffValue);
+                    diffTextHtml = `<div class="diff-text">Chybí ${diffFormat} na ${usersArray[index-1].name} ⬆️</div>`;
+                }
 
                 statsHtml += `
                     <div class="stat-item">
-                        <div style="display:flex; align-items: center; width: 100%;">
-                            ${rankVisual}
-                            <span style="font-size:24px; margin-right:10px;">${user.avatar || '👤'}</span>
-                            <div style="flex-grow: 1;">
-                                <div style="font-weight:bold; font-size:1.1em; margin-bottom:3px;">${user.name} ${streakVisual}</div>
-                                <div style="font-size: 0.85em; color: #aaa;">Celkem: <strong style="color:white;">${formatTimeLong(user.totalTime || 0)}</strong> | Max: <strong style="color:#ffeb3b;">${formatTimeLong(user.longestPlank || 0)}</strong></div>
+                        ${rankVisual}
+                        <div style="font-size:35px; margin-right:15px;">${user.avatar || '👤'}</div>
+                        <div class="player-info">
+                            <div class="player-name-row">
+                                <span class="status-dot status-${user.actStatus}"></span>
+                                ${user.name} 
+                                ${badges.join(' ')}
                             </div>
-                            <button class="view-profile-btn" onclick="openPublicProfile('${user.id}')">👁️ Profil</button>
+                            <div class="stat-main-val">${mainStatLabel} ${mainStatValue}</div>
+                            <div class="stat-sub-val">${subStatText}</div>
+                            ${diffTextHtml}
                         </div>
+                        <button class="view-profile-btn" onclick="openPublicProfile('${user.id}')">👁️ Profil</button>
                     </div>`;
             });
             
-            document.getElementById('stats-list').innerHTML = usersArray.length === 0 ? 'Zatím žádná data.' : statsHtml;
-            if(selectedVal && allUsersData[selectedVal]) userSelect.value = selectedVal;
-            if (currentUser && allUsersData[currentUser]) updateProfileUI();
-        });
+            document.getElementById('stats-list').innerHTML = usersArray.length === 0 ? '<div style="color:#aaa;">Zatím žádná data. Přidej se!</div>' : statsHtml;
+        }
 
         // PŘEPÍNÁNÍ OBRAZOVEK A PROFIL
         document.getElementById('user-select').addEventListener('change', (e) => {
@@ -401,7 +506,6 @@
                 box.classList.toggle('rest', restDays[d]);
             });
 
-            // Vykreslit moji vitrínu
             renderAchievements('my-achievements-container', data);
 
             const historyList = document.getElementById('history-list');
@@ -511,7 +615,6 @@
             
             let updates = { totalTime: newTotal, longestPlank: newLongest };
             
-            // Kontrola časových achievementů (ukládají se do DB navždy)
             let achUpdates = data.achievements || {};
             let currentHour = new Date().getHours();
             if (currentHour >= 6 && currentHour < 8) achUpdates['time_morning'] = true;
@@ -519,7 +622,6 @@
             if (currentHour >= 0 && currentHour < 6) achUpdates['time_insomnia'] = true;
             updates.achievements = achUpdates;
 
-            // Streak logika
             let todayStr = new Date().toLocaleDateString('en-CA');
             let currentStreak = calculateCurrentStreak(data);
             if (data.lastDate !== todayStr) {
