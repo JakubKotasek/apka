@@ -60,9 +60,6 @@
         .history-list { max-height: 150px; overflow-y: auto; background: #222; padding: 10px; border-radius: 8px; text-align: left; margin-bottom: 15px; }
         .history-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #444; font-size: 14px; }
         .del-btn { background: transparent; color: #f44336; padding: 2px 5px; margin: 0; width: auto; font-size: 12px; }
-
-        .settings-row { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 10px; border-radius: 8px; margin-top: 10px;}
-        .settings-row input[type="time"] { width: auto; padding: 5px; margin: 0; background: #333; color: white; border: 1px solid #555; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -109,16 +106,6 @@
             </div>
             <div id="level-display" class="level-badge"></div>
             <button onclick="goToWorkout()" style="font-size: 18px; padding: 15px; margin-bottom: 15px;">JÍT CVIČIT 💪</button>
-
-            <!-- Upozornění (Notifikace) -->
-            <div style="font-size: 12px; color: #888; text-align: left;">🔔 Chytré upozornění (ve cvičící dny):</div>
-            <div class="settings-row">
-                <span style="font-size: 14px;">Čas připomenutí:</span>
-                <div style="display: flex; gap: 5px;">
-                    <input type="time" id="reminder-time">
-                    <button onclick="setReminder()" style="margin:0; padding: 5px 10px; width: auto; font-size: 12px;">Uložit</button>
-                </div>
-            </div>
 
             <!-- Dny odpočinku -->
             <div style="font-size: 12px; color: #888; text-align: left; margin-top: 15px;">💤 Dny odpočinku (Kliknutím zmodrá):</div>
@@ -199,7 +186,7 @@
         let timerInterval, countdownInterval;
         let secondsElapsed = 0;
         let isPlanking = false;
-        const avatars = ['👤', '🦁', '🥷', '🧘‍♀️', '🦾', '🔥', '👑', '👽', '😎', '🦄', '🦖', '🍕'];
+        const avatars = ['👤', '🦁', '🥷', '🧘‍♀️', '🦾', '🔥', '👽', '😎', '🦄', '🦖', '🍕'];
 
         function getWorkoutCount(userData) { return userData.history ? Object.keys(userData.history).length : 0; }
         
@@ -397,44 +384,6 @@
             db.ref(`users/${currentUser}`).update({ showcase: showcase });
         }
 
-        // --- Upozornění (Notifikace) ---
-        function setReminder() {
-            let time = document.getElementById('reminder-time').value;
-            if (!time) return alert("Vyber platný čas.");
-            db.ref(`users/${currentUser}`).update({ reminderTime: time }).then(() => {
-                if (window.Notification && Notification.permission !== 'granted') {
-                    Notification.requestPermission();
-                }
-                alert("Upozornění uloženo! Měj v tento čas otevřený prohlížeč.");
-            });
-        }
-
-        // Běží na pozadí a kontroluje čas (každých 20 vteřin)
-        setInterval(() => {
-            if(!currentUser) return;
-            let data = allUsersData[currentUser];
-            if(!data || !data.reminderTime) return;
-            
-            let d = new Date();
-            let hh = d.getHours().toString().padStart(2, '0');
-            let mm = d.getMinutes().toString().padStart(2, '0');
-            let currentTime = `${hh}:${mm}`;
-            
-            // Kontrola jestli je ten správný čas (a spouští se jen na začátku minuty)
-            if (currentTime === data.reminderTime && d.getSeconds() < 25) { 
-                let day = (d.getDay() + 6) % 7;
-                let restDays = data.restDays || [];
-                if(restDays[day]) return; // Je to rest day
-                
-                let todayStr = d.toLocaleDateString('en-CA');
-                if(data.lastDate === todayStr) return; // Už dnes cvičil
-                
-                if (window.Notification && Notification.permission === 'granted') {
-                    new Notification("Plank Tracker ⏱️", { body: "Je čas na tvůj dnešní plank! 🔥 Jdeme na to!" });
-                }
-            }
-        }, 20000);
-
         db.ref('users').on('value', (snapshot) => {
             allUsersData = snapshot.val() || {};
             updateLeaderboard();
@@ -474,7 +423,6 @@
                     });
                 }
                 
-                // Spočítáme počet odemčených achievementů
                 let achCount = ACHIEVEMENTS.filter(a => a.req(u)).length;
                 
                 return { id: key, ...u, displayStreak, thisMonthTime, actStatus: getActivityStatus(u), achCount };
@@ -522,11 +470,11 @@
                 let badges = [];
                 if (currentSort !== 'streak' && user.displayStreak > 0) badges.push(`<span style="background:#ff9800; color:#000; padding:2px 5px; border-radius:8px; font-size:10px;">🔥 ${user.displayStreak}</span>`);
                 if (user.longestPlank > 0 && user.longestPlank === globalMaxPlank) badges.push(`<span title="Nejdelší výdrž ze všech">💪</span>`);
-                if (user.displayStreak > 0 && user.displayStreak === globalMaxStreak) badges.push(`<span title="Největší série ze všech">👑🔥</span>`);
+                if (user.displayStreak > 0 && user.displayStreak === globalMaxStreak) badges.push(`<span title="Největší série ze všech">🌟</span>`); // Upraveno na hvězdu místo korunky
                 
-                // Medaile podle umístění
+                // Opravené medaile místo korunek
                 let rankVisual = '';
-                if (index === 0) rankVisual = '<div class="rank-box">🏆</div>';
+                if (index === 0) rankVisual = '<div class="rank-box" style="font-size: 1.6em;">🥇</div>';
                 else if (index === 1) rankVisual = '<div class="rank-box" style="font-size: 1.6em;">🥈</div>';
                 else if (index === 2) rankVisual = '<div class="rank-box" style="font-size: 1.6em;">🥉</div>';
                 else rankVisual = `<div class="rank-box">${index + 1}.</div>`;
@@ -622,7 +570,6 @@
             document.getElementById('avatar-display').textContent = data.avatar || '👤';
             document.getElementById('streak-display').textContent = streak > 0 ? `🔥 Série: ${streak} dní` : '';
             document.getElementById('level-display').textContent = getLevel(data.totalTime || 0);
-            document.getElementById('reminder-time').value = data.reminderTime || '';
 
             let restDays = data.restDays || [false,false,false,false,false,false,false];
             document.querySelectorAll('.day-box').forEach(box => {
@@ -630,7 +577,7 @@
                 box.classList.toggle('rest', restDays[d]);
             });
 
-            renderAchievements('my-achievements-container', data, true); // true = own profile (clickable)
+            renderAchievements('my-achievements-container', data, true);
 
             const historyList = document.getElementById('history-list');
             historyList.innerHTML = '';
@@ -686,110 +633,4 @@
                 db.ref(`users/${currentUser}/history`).once('value', snap => {
                     let hists = snap.val() || {}; let newTotal = 0; let newMax = 0;
                     Object.values(hists).forEach(h => { newTotal += h.duration; if (h.duration > newMax) newMax = h.duration; });
-                    db.ref(`users/${currentUser}`).update({ totalTime: newTotal, longestPlank: newMax });
-                });
-            });
-        }
-
-        function startCountdown() {
-            document.getElementById('start-btn').style.display = 'none';
-            document.getElementById('cancel-btn').style.display = 'none';
-            if(audioCtx.state === 'suspended') audioCtx.resume();
-            
-            let count = 3;
-            document.getElementById('countdown-display').textContent = `Připrav se... ${count}`;
-            playSound('beep');
-            countdownInterval = setInterval(() => {
-                count--;
-                if (count > 0) {
-                    document.getElementById('countdown-display').textContent = `Připrav se... ${count}`;
-                    playSound('beep');
-                } else {
-                    clearInterval(countdownInterval);
-                    document.getElementById('countdown-display').textContent = "🔥 JEĎ! 🔥";
-                    playSound('gong');
-                    setTimeout(() => document.getElementById('countdown-display').textContent = "", 1500);
-                    startPlank();
-                }
-            }, 1000);
-        }
-
-        function startPlank() {
-            isPlanking = true;
-            document.getElementById('stop-btn').style.display = 'inline-block';
-            secondsElapsed = 0; document.getElementById('timer-display').textContent = "00:00";
-            timerInterval = setInterval(() => {
-                secondsElapsed++;
-                document.getElementById('timer-display').textContent = formatTime(secondsElapsed);
-            }, 1000);
-        }
-
-        function stopTimer() {
-            if (!isPlanking) return;
-            clearInterval(timerInterval); isPlanking = false;
-            playSound('gong');
-            
-            const data = allUsersData[currentUser];
-            let currentStreak = calculateCurrentStreak(data);
-            const isPersonalRecord = secondsElapsed > (data.longestPlank || 0) && secondsElapsed > 10;
-            
-            if (isPersonalRecord) confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-            
-            const newTotal = (data.totalTime || 0) + secondsElapsed;
-            const newLongest = Math.max(data.longestPlank || 0, secondsElapsed);
-            
-            let updates = { totalTime: newTotal, longestPlank: newLongest };
-            
-            let achUpdates = data.achievements || {};
-            let d = new Date();
-            let month = d.getMonth(); 
-            let date = d.getDate();
-            let day = d.getDay(); 
-            let hour = d.getHours();
-
-            if (isPersonalRecord && currentStreak >= 30) achUpdates['ach_second_wind'] = true;
-            
-            if (day === 0 || day === 6) {
-                let historyArr = Object.values(data.history || {});
-                historyArr.push({timestamp: Date.now()}); 
-                let recent = historyArr.filter(log => (Date.now() - log.timestamp) < 3 * 24 * 3600 * 1000);
-                let hasSat = recent.some(l => new Date(l.timestamp).getDay() === 6);
-                let hasSun = recent.some(l => new Date(l.timestamp).getDay() === 0);
-                if (hasSat && hasSun) achUpdates['ach_weekend'] = true;
-            }
-
-            if (hour >= 6 && hour < 8) achUpdates['time_morning'] = true;
-            if (hour >= 20 || hour === 23) achUpdates['time_night'] = true;
-            if (month === 11 && date === 24) achUpdates['ach_xmas'] = true; 
-            if (month === 11 && date === 31) achUpdates['ach_nye'] = true; 
-            if (month === 0 && date === 1) achUpdates['ach_ny'] = true; 
-            if (month === 9 && date === 31) achUpdates['ach_hallo'] = true; 
-            if (month === 1 && date === 14) achUpdates['ach_val'] = true; 
-            if (month === 1 && date === 29) achUpdates['ach_leap'] = true; 
-            if (day === 5 && date === 13) achUpdates['ach_fri13'] = true; 
-            
-            if (secondsElapsed === 201) achUpdates['ach_321'] = true; 
-            if (secondsElapsed === 244) achUpdates['ach_404'] = true; 
-            if (secondsElapsed === 194) achUpdates['ach_pi'] = true;  
-
-            updates.achievements = achUpdates;
-
-            let todayStr = new Date().toLocaleDateString('en-CA');
-            if (data.lastDate !== todayStr) {
-                updates.streak = currentStreak + 1;
-                updates.lastDate = todayStr;
-            }
-
-            db.ref(`users/${currentUser}/history`).push({ duration: secondsElapsed, timestamp: Date.now() });
-            
-            db.ref(`users/${currentUser}`).update(updates).then(() => {
-                setTimeout(() => {
-                    let msg = isPersonalRecord ? "NOVÝ OSOBNÍ REKORD! 🎉\n\n" : "Skvělá práce!\n\n";
-                    alert(msg + `Čas: ${formatTimeLong(secondsElapsed)}`);
-                    cancelWorkout();
-                }, 500);
-            });
-        }
-    </script>
-</body>
-</html>
+                    db.ref(
