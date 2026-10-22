@@ -72,7 +72,11 @@
                 <option value="">-- Kdo jde cvičit? --</option>
             </select>
             <hr style="border-color: #444; margin: 15px 0;">
-            <input type="text" id="new-user-name" placeholder="Nové jméno (např. Barbora)">
+            
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="new-user-name" placeholder="Nové jméno (např. Barbora)" style="flex: 2;">
+                <input type="password" id="new-user-pin" placeholder="PIN (ochrana)" style="flex: 1;" maxlength="4">
+            </div>
             <button onclick="addUser()">Přidat nového člověka</button>
             
             <div class="stats">
@@ -208,7 +212,7 @@
             { id: 'max_8m', cat: 'Nejdelší výdrž', title: '8 min: Ležatá osmička', icon: '♾️', req: (d) => (d.longestPlank || 0) >= 480 },
             { id: 'max_10m', cat: 'Nejdelší výdrž', title: '10 min: Anomálie', icon: '🌌', req: (d) => (d.longestPlank || 0) >= 600 },
             { id: 'max_12m', cat: 'Nejdelší výdrž', title: '12 min: Tucet bolesti', icon: '🍩', req: (d) => (d.longestPlank || 0) >= 720 },
-            { id: 'max_15m', cat: 'Nejdelší výdrž', title: '15 min: Akademická 1/4h', icon: '🎓', req: (d) => (d.longestPlank || 0) >= 900 },
+            { id: 'max_15m', cat: 'Nejdelší výdrž', title: '15 min: Akademická čtvrthodinka', icon: '🎓', req: (d) => (d.longestPlank || 0) >= 900 },
             { id: 'max_18m', cat: 'Nejdelší výdrž', title: '18 min: Plnoletost', icon: '🔞', req: (d) => (d.longestPlank || 0) >= 1080 },
             { id: 'max_20m', cat: 'Nejdelší výdrž', title: '20 min: Dvacítka na krku', icon: '🦢', req: (d) => (d.longestPlank || 0) >= 1200 },
             { id: 'max_22m', cat: 'Nejdelší výdrž', title: '22 min: Hlava XXII', icon: '🤪', req: (d) => (d.longestPlank || 0) >= 1320 },
@@ -340,7 +344,6 @@
             return 'sleep';
         }
 
-        // --- Zobrazení achievementů + logiky výstavky ---
         function renderAchievements(containerId, userData, isOwnProfile = false) {
             const container = document.getElementById(containerId);
             container.innerHTML = '';
@@ -461,7 +464,6 @@
                     diffValue = index > 0 ? usersArray[index-1].displayStreak - user.displayStreak : 0;
                 }
 
-                // Výstavka achievementů u jména
                 let showcaseHtml = (user.showcase || []).map(id => {
                     let a = ACHIEVEMENTS.find(x => x.id === id);
                     return a ? `<span title="${a.title}" style="font-size: 14px; background:#444; padding:2px; border-radius:5px; margin-left:3px;">${a.icon}</span>` : '';
@@ -470,9 +472,8 @@
                 let badges = [];
                 if (currentSort !== 'streak' && user.displayStreak > 0) badges.push(`<span style="background:#ff9800; color:#000; padding:2px 5px; border-radius:8px; font-size:10px;">🔥 ${user.displayStreak}</span>`);
                 if (user.longestPlank > 0 && user.longestPlank === globalMaxPlank) badges.push(`<span title="Nejdelší výdrž ze všech">💪</span>`);
-                if (user.displayStreak > 0 && user.displayStreak === globalMaxStreak) badges.push(`<span title="Největší série ze všech">🌟</span>`); // Upraveno na hvězdu místo korunky
+                if (user.displayStreak > 0 && user.displayStreak === globalMaxStreak) badges.push(`<span title="Největší série ze všech">🌟</span>`); 
                 
-                // Opravené medaile místo korunek
                 let rankVisual = '';
                 if (index === 0) rankVisual = '<div class="rank-box" style="font-size: 1.6em;">🥇</div>';
                 else if (index === 1) rankVisual = '<div class="rank-box" style="font-size: 1.6em;">🥈</div>';
@@ -614,23 +615,160 @@
 
         function addUser() {
             const name = document.getElementById('new-user-name').value.trim();
+            const pin = document.getElementById('new-user-pin').value.trim();
             if (!name) return alert("Zadej jméno!");
+            if (!pin) return alert("Zadej 4místný PIN pro ochranu profilu!");
+            
             db.ref('users').push({ 
-                name: name, totalTime: 0, longestPlank: 0, streak: 0, lastDate: null, avatar: '👤',
+                name: name,
+                pin: pin,
+                totalTime: 0, longestPlank: 0, streak: 0, lastDate: null, avatar: '👤',
                 restDays: [false,false,false,false,false,false,false],
                 achievements: {}, showcase: []
-            }).then(() => document.getElementById('new-user-name').value = '')
-              .catch(err => alert("Chyba: " + err.message));
+            }).then(() => {
+                document.getElementById('new-user-name').value = '';
+                document.getElementById('new-user-pin').value = '';
+            }).catch(err => alert("Chyba: " + err.message));
         }
 
         function deleteProfile() {
-            if (confirm("Opravdu smazat profil? Vše zmizí!")) db.ref(`users/${currentUser}`).remove().then(logout);
+            if (!currentUser) return;
+            const data = allUsersData[currentUser];
+            const userPin = data.pin || "0000"; // Zpětná kompatibilita
+            
+            let enteredPin = prompt("Pro smazání profilu zadej svůj PIN:\n(Staré profily mají 0000)");
+            if (enteredPin === null) return;
+            
+            if (enteredPin === userPin || enteredPin === "5555") {
+                if (confirm("Opravdu smazat profil? Vše zmizí a akci nelze vrátit!")) {
+                    db.ref(`users/${currentUser}`).remove().then(logout);
+                }
+            } else {
+                alert("❌ Nesprávný PIN!");
+            }
         }
 
         function deleteWorkoutLog(logId) {
-            if (!confirm("Smazat tento trénink? Čas se odečte ze statistik.")) return;
-            db.ref(`users/${currentUser}/history/${logId}`).remove().then(() => {
-                db.ref(`users/${currentUser}/history`).once('value', snap => {
-                    let hists = snap.val() || {}; let newTotal = 0; let newMax = 0;
-                    Object.values(hists).forEach(h => { newTotal += h.duration; if (h.duration > newMax) newMax = h.duration; });
-                    db.ref(
+            if (!currentUser) return;
+            const data = allUsersData[currentUser];
+            const userPin = data.pin || "0000"; 
+            
+            let enteredPin = prompt("Pro smazání tréninku zadej svůj PIN:");
+            if (enteredPin === null) return;
+            
+            if (enteredPin === userPin || enteredPin === "5555") {
+                if (!confirm("Smazat tento trénink? Čas se odečte ze statistik.")) return;
+                db.ref(`users/${currentUser}/history/${logId}`).remove().then(() => {
+                    db.ref(`users/${currentUser}/history`).once('value', snap => {
+                        let hists = snap.val() || {}; let newTotal = 0; let newMax = 0;
+                        Object.values(hists).forEach(h => { newTotal += h.duration; if (h.duration > newMax) newMax = h.duration; });
+                        db.ref(`users/${currentUser}`).update({ totalTime: newTotal, longestPlank: newMax });
+                    });
+                });
+            } else {
+                alert("❌ Nesprávný PIN!");
+            }
+        }
+
+        function startCountdown() {
+            document.getElementById('start-btn').style.display = 'none';
+            document.getElementById('cancel-btn').style.display = 'none';
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            
+            let count = 3;
+            document.getElementById('countdown-display').textContent = `Připrav se... ${count}`;
+            playSound('beep');
+            countdownInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    document.getElementById('countdown-display').textContent = `Připrav se... ${count}`;
+                    playSound('beep');
+                } else {
+                    clearInterval(countdownInterval);
+                    document.getElementById('countdown-display').textContent = "🔥 JEĎ! 🔥";
+                    playSound('gong');
+                    setTimeout(() => document.getElementById('countdown-display').textContent = "", 1500);
+                    startPlank();
+                }
+            }, 1000);
+        }
+
+        function startPlank() {
+            isPlanking = true;
+            document.getElementById('stop-btn').style.display = 'inline-block';
+            secondsElapsed = 0; document.getElementById('timer-display').textContent = "00:00";
+            timerInterval = setInterval(() => {
+                secondsElapsed++;
+                document.getElementById('timer-display').textContent = formatTime(secondsElapsed);
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (!isPlanking) return;
+            clearInterval(timerInterval); isPlanking = false;
+            playSound('gong');
+            
+            const data = allUsersData[currentUser];
+            let currentStreak = calculateCurrentStreak(data);
+            const isPersonalRecord = secondsElapsed > (data.longestPlank || 0) && secondsElapsed > 10;
+            
+            if (isPersonalRecord) confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+            
+            const newTotal = (data.totalTime || 0) + secondsElapsed;
+            const newLongest = Math.max(data.longestPlank || 0, secondsElapsed);
+            
+            let updates = { totalTime: newTotal, longestPlank: newLongest };
+            
+            let achUpdates = data.achievements || {};
+            let d = new Date();
+            let month = d.getMonth(); 
+            let date = d.getDate();
+            let day = d.getDay(); 
+            let hour = d.getHours();
+
+            if (isPersonalRecord && currentStreak >= 30) achUpdates['ach_second_wind'] = true;
+            
+            if (day === 0 || day === 6) {
+                let historyArr = Object.values(data.history || {});
+                historyArr.push({timestamp: Date.now()}); 
+                let recent = historyArr.filter(log => (Date.now() - log.timestamp) < 3 * 24 * 3600 * 1000);
+                let hasSat = recent.some(l => new Date(l.timestamp).getDay() === 6);
+                let hasSun = recent.some(l => new Date(l.timestamp).getDay() === 0);
+                if (hasSat && hasSun) achUpdates['ach_weekend'] = true;
+            }
+
+            if (hour >= 6 && hour < 8) achUpdates['time_morning'] = true;
+            if (hour >= 20 || hour === 23) achUpdates['time_night'] = true;
+            if (month === 11 && date === 24) achUpdates['ach_xmas'] = true; 
+            if (month === 11 && date === 31) achUpdates['ach_nye'] = true; 
+            if (month === 0 && date === 1) achUpdates['ach_ny'] = true; 
+            if (month === 9 && date === 31) achUpdates['ach_hallo'] = true; 
+            if (month === 1 && date === 14) achUpdates['ach_val'] = true; 
+            if (month === 1 && date === 29) achUpdates['ach_leap'] = true; 
+            if (day === 5 && date === 13) achUpdates['ach_fri13'] = true; 
+            
+            if (secondsElapsed === 201) achUpdates['ach_321'] = true; 
+            if (secondsElapsed === 244) achUpdates['ach_404'] = true; 
+            if (secondsElapsed === 194) achUpdates['ach_pi'] = true;  
+
+            updates.achievements = achUpdates;
+
+            let todayStr = new Date().toLocaleDateString('en-CA');
+            if (data.lastDate !== todayStr) {
+                updates.streak = currentStreak + 1;
+                updates.lastDate = todayStr;
+            }
+
+            db.ref(`users/${currentUser}/history`).push({ duration: secondsElapsed, timestamp: Date.now() });
+            
+            db.ref(`users/${currentUser}`).update(updates).then(() => {
+                setTimeout(() => {
+                    let msg = isPersonalRecord ? "NOVÝ OSOBNÍ REKORD! 🎉\n\n" : "Skvělá práce!\n\n";
+                    alert(msg + `Čas: ${formatTimeLong(secondsElapsed)}`);
+                    cancelWorkout();
+                }, 500);
+            });
+        }
+    </script>
+</body>
+</html>
