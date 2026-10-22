@@ -13,7 +13,7 @@
         button { background: #4caf50; color: white; cursor: pointer; font-weight: bold; transition: 0.2s; }
         button:active { opacity: 0.8; transform: scale(0.98); }
         button.stop { background: #f44336; height: 80px; font-size: 20px; }
-        .text-btn { background: transparent; margin-top: 10px; padding: 8px; font-size: 14px; color: #888; }
+        .text-btn { background: transparent; margin-top: 10px; padding: 8px; font-size: 14px; color: #888; border: none; cursor: pointer;}
         
         .timer { font-size: 70px; font-weight: bold; margin: 20px 0; font-variant-numeric: tabular-nums; }
         .countdown { color: #ffeb3b; font-size: 30px; min-height: 40px; margin-top: 10px; }
@@ -59,7 +59,7 @@
         
         .history-list { max-height: 150px; overflow-y: auto; background: #222; padding: 10px; border-radius: 8px; text-align: left; margin-bottom: 15px; }
         .history-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #444; font-size: 14px; }
-        .del-btn { background: transparent; color: #f44336; padding: 2px 5px; margin: 0; width: auto; font-size: 12px; }
+        .del-btn { background: transparent; color: #f44336; padding: 2px 5px; margin: 0; width: auto; font-size: 12px; border: none; cursor: pointer;}
     </style>
 </head>
 <body>
@@ -101,6 +101,11 @@
 
         <!-- 2. TVŮJ PROFIL -->
         <div id="profile-section" style="display:none;">
+            <!-- Tlačítko Zpět úplně nahoře -->
+            <div style="text-align: left; margin-bottom: 10px;">
+                <button class="text-btn" onclick="logout()" style="margin: 0; padding: 5px 0; font-size: 16px;">🔙 Zpět na výběr jména</button>
+            </div>
+
             <div class="profile-header">
                 <button class="avatar-btn" id="avatar-display" onclick="changeAvatar()"></button>
                 <div style="text-align: left;">
@@ -129,8 +134,8 @@
             <div style="font-size: 12px; color: #888; text-align: left; margin-top: 15px;">🕒 Historie:</div>
             <div class="history-list" id="history-list"></div>
 
-            <button class="text-btn" onclick="logout()">🔙 Zpět na výběr osoby</button>
-            <button class="text-btn" onclick="deleteProfile()" style="color: #f44336; float: right;">🗑️ Smazat profil</button>
+            <button class="text-btn" onclick="deleteProfile()" style="color: #f44336; float: right; margin-top: 15px;">🗑️ Smazat profil</button>
+            <div style="clear: both;"></div>
         </div>
 
         <!-- 3. OBRAZOVKA CVIČENÍ -->
@@ -145,6 +150,11 @@
 
         <!-- 4. VEŘEJNÝ PROFIL -->
         <div id="public-profile-section" style="display:none;">
+            <!-- Tlačítko Zpět úplně nahoře -->
+            <div style="text-align: left; margin-bottom: 10px;">
+                <button class="text-btn" onclick="closePublicProfile()" style="margin: 0; padding: 5px 0; font-size: 16px;">🔙 Zpět na Síň slávy</button>
+            </div>
+
             <div class="profile-header">
                 <div class="avatar-btn" id="pub-avatar-display" style="border-color: #888; cursor: default;"></div>
                 <div style="text-align: left;">
@@ -162,7 +172,6 @@
             </div>
             <div style="text-align: left; font-weight: bold; color: #ffeb3b; margin-top: 15px;">🏅 Vitrína hráče</div>
             <div id="pub-achievements-container" style="background: #222; padding: 10px; border-radius: 8px; margin-top: 5px; max-height: 300px; overflow-y: auto;"></div>
-            <button onclick="closePublicProfile()" style="margin-top: 20px;">Zavřít profil</button>
         </div>
 
     </div>
@@ -249,526 +258,4 @@
             
             { id: 'str_3', cat: 'Série (Streak)', title: '3 dny: Hattrick', icon: '🎩', req: (d) => calculateCurrentStreak(d) >= 3 },
             { id: 'str_5', cat: 'Série (Streak)', title: '5 dní: Jiskra', icon: '✨', req: (d) => calculateCurrentStreak(d) >= 5 },
-            { id: 'str_10', cat: 'Série (Streak)', title: '10 dní: Plamen', icon: '🔥', req: (d) => calculateCurrentStreak(d) >= 10 },
-            { id: 'str_14', cat: 'Série (Streak)', title: '14 dní: Bez výmluv', icon: '🗓️', req: (d) => calculateCurrentStreak(d) >= 14 },
-            { id: 'str_21', cat: 'Série (Streak)', title: '21 dní: Nový zvyk', icon: '🧠', req: (d) => calculateCurrentStreak(d) >= 21 },
-            { id: 'str_30', cat: 'Série (Streak)', title: '30 dní: Požár', icon: '🚒', req: (d) => calculateCurrentStreak(d) >= 30 },
-            { id: 'str_50', cat: 'Série (Streak)', title: '50 dní: Zlatý střed', icon: '🪙', req: (d) => calculateCurrentStreak(d) >= 50 },
-            { id: 'str_100', cat: 'Série (Streak)', title: '100 dní: Maraton', icon: '💯', req: (d) => calculateCurrentStreak(d) >= 100 },
-            { id: 'str_365', cat: 'Série (Streak)', title: '365 dní: Železný rok', icon: '⚔️', req: (d) => calculateCurrentStreak(d) >= 365 },
-
-            { id: 'ach_spring', cat: 'Styl a disciplína', title: 'Jarní probuzení (30x jaro)', icon: '🌱', req: (d) => getSeasonWorkoutCount(d, [2, 3, 4]) >= 30 },
-            { id: 'ach_summer', cat: 'Styl a disciplína', title: 'Plážová forma (30x léto)', icon: '☀️', req: (d) => getSeasonWorkoutCount(d, [5, 6, 7]) >= 30 },
-            { id: 'ach_autumn', cat: 'Styl a disciplína', title: 'Podzimní vytrvalec (30x podzim)', icon: '🍂', req: (d) => getSeasonWorkoutCount(d, [8, 9, 10]) >= 30 },
-            { id: 'ach_winter', cat: 'Styl a disciplína', title: 'Zimní voják (30x zima)', icon: '❄️', req: (d) => getSeasonWorkoutCount(d, [11, 0, 1]) >= 30 },
-            { id: 'ach_heavy', cat: 'Styl a disciplína', title: 'Těžkooděnec (7 dní bez pauzy)', icon: '🛡️', req: (d) => calculateCurrentStreak(d) >= 7 && !(d.restDays || []).some(r => r === true) },
-            { id: 'ach_weekend', cat: 'Styl a disciplína', title: 'Víkendový válečník (So+Ne)', icon: '⚔️', req: (d) => (d.achievements && d.achievements['ach_weekend']) },
-            { id: 'ach_second_wind', cat: 'Styl a disciplína', title: 'Druhý dech (Rekord po 30d)', icon: '🧟‍♂️', req: (d) => (d.achievements && d.achievements['ach_second_wind']) },
-
-            { id: 'time_morning', cat: 'Tajné výzvy & Svátky', title: 'Ranní ptáče (6:00-8:00)', icon: '🌅', req: (d) => (d.achievements && d.achievements['time_morning']) },
-            { id: 'time_night', cat: 'Tajné výzvy & Svátky', title: 'Noční zvíře (20:00-0:00)', icon: '🦉', req: (d) => (d.achievements && d.achievements['time_night']) },
-            { id: 'ach_xmas', cat: 'Tajné výzvy & Svátky', title: 'Zlaté prasátko (24.12.)', icon: '🐷', req: (d) => (d.achievements && d.achievements['ach_xmas']) },
-            { id: 'ach_nye', cat: 'Tajné výzvy & Svátky', title: 'Silvestr (31.12.)', icon: '🥂', req: (d) => (d.achievements && d.achievements['ach_nye']) },
-            { id: 'ach_ny', cat: 'Tajné výzvy & Svátky', title: 'Nový rok (1.1.)', icon: '🎆', req: (d) => (d.achievements && d.achievements['ach_ny']) },
-            { id: 'ach_hallo', cat: 'Tajné výzvy & Svátky', title: 'Halloween (31.10.)', icon: '🎃', req: (d) => (d.achievements && d.achievements['ach_hallo']) },
-            { id: 'ach_val', cat: 'Tajné výzvy & Svátky', title: 'Valentýn (14.2.)', icon: '🌹', req: (d) => (d.achievements && d.achievements['ach_val']) },
-            { id: 'ach_leap', cat: 'Tajné výzvy & Svátky', title: 'Přestupný rok (29.2.)', icon: '🐸', req: (d) => (d.achievements && d.achievements['ach_leap']) },
-            { id: 'ach_fri13', cat: 'Tajné výzvy & Svátky', title: 'Pátek 13.', icon: '🐈‍⬛', req: (d) => (d.achievements && d.achievements['ach_fri13']) },
-            { id: 'ach_321', cat: 'Tajné výzvy & Svátky', title: 'Destrukce: Čas 03:21', icon: '💣', req: (d) => (d.achievements && d.achievements['ach_321']) },
-            { id: 'ach_404', cat: 'Tajné výzvy & Svátky', title: 'Error 404: Čas 04:04', icon: '💻', req: (d) => (d.achievements && d.achievements['ach_404']) },
-            { id: 'ach_pi', cat: 'Tajné výzvy & Svátky', title: 'Ludolfovo číslo: 03:14', icon: '🥧', req: (d) => (d.achievements && d.achievements['ach_pi']) }
-        ];
-
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const t = audioCtx.currentTime;
-            
-            if (type === 'beep') {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine'; osc.frequency.setValueAtTime(600, t);
-                gain.gain.setValueAtTime(0, t); gain.gain.linearRampToValueAtTime(0.3, t + 0.05); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(t); osc.stop(t + 0.2);
-            } else if (type === 'gong') {
-                const osc1 = audioCtx.createOscillator(); const osc2 = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
-                osc1.type = 'sine'; osc2.type = 'sine';
-                osc1.frequency.setValueAtTime(440, t); osc2.frequency.setValueAtTime(444, t);
-                gainNode.gain.setValueAtTime(0, t); gainNode.gain.linearRampToValueAtTime(0.5, t + 0.1); gainNode.gain.exponentialRampToValueAtTime(0.001, t + 2.5);
-                osc1.connect(gainNode); osc2.connect(gainNode); gainNode.connect(audioCtx.destination);
-                osc1.start(t); osc2.start(t); osc1.stop(t + 3); osc2.stop(t + 3);
-            }
-        }
-
-        function formatTime(sec) {
-            const m = Math.floor(sec / 60).toString().padStart(2, '0'); const s = (sec % 60).toString().padStart(2, '0');
-            return `${m}:${s}`;
-        }
-        function formatTimeLong(sec) {
-            const h = Math.floor(sec / 3600); const m = Math.floor((sec % 3600) / 60); const s = sec % 60;
-            if (h > 0) return `${h}h ${m}m`;
-            return m === 0 ? `${s}s` : `${m}m ${s}s`;
-        }
-        
-        function getLevel(sec) {
-            const m = sec / 60;
-            if (m < 60) return '🪵 Dřevěný střed';
-            if (m < 300) return '🪨 Kámen';
-            if (m < 1200) return '⚙️ Železné břicho';
-            return '💎 Titanový Terminátor';
-        }
-
-        function calculateCurrentStreak(userData) {
-            let streak = userData.streak || 0;
-            if (!userData.lastDate || streak === 0) return 0;
-            let today = new Date(); today.setHours(0,0,0,0);
-            let lastDate = new Date(userData.lastDate); lastDate.setHours(0,0,0,0);
-            let diffDays = Math.round((today - lastDate) / (1000 * 60 * 60 * 24));
-            let restDays = userData.restDays || [false,false,false,false,false,false,false];
-            if (diffDays <= 1) return streak;
-            for (let i = 1; i < diffDays; i++) {
-                let checkDate = new Date(lastDate); checkDate.setDate(checkDate.getDate() + i);
-                if (!restDays[(checkDate.getDay() + 6) % 7]) return 0;
-            }
-            return streak;
-        }
-
-        function getActivityStatus(userData) {
-            if (!userData.lastDate) return 'sleep';
-            let today = new Date(); today.setHours(0,0,0,0);
-            let lastDate = new Date(userData.lastDate); lastDate.setHours(0,0,0,0);
-            let diffDays = Math.round((today - lastDate) / (1000 * 60 * 60 * 24));
-            if (diffDays === 0) return 'today';
-            if (diffDays === 1) return 'yesterday';
-            return 'sleep';
-        }
-
-        function renderAchievements(containerId, userData, isOwnProfile = false) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '';
-            const categories = {};
-            ACHIEVEMENTS.forEach(a => {
-                if(!categories[a.cat]) categories[a.cat] = [];
-                categories[a.cat].push(a);
-            });
-            for (const [catName, achList] of Object.entries(categories)) {
-                let catHtml = `<div class="ach-category-title">${catName}</div><div class="achievements-grid">`;
-                achList.forEach(a => {
-                    const isUnlocked = a.req(userData);
-                    const isShowcased = (userData.showcase || []).includes(a.id);
-                    
-                    let onClick = (isOwnProfile && isUnlocked) ? `onclick="toggleShowcase('${a.id}')"` : '';
-                    let showcaseBadge = isShowcased ? `<div class="showcase-star">⭐</div>` : '';
-                    
-                    catHtml += `
-                        <div class="ach-box ${isUnlocked ? 'unlocked' : ''}" title="${a.title}" ${onClick}>
-                            ${showcaseBadge}
-                            <div>${a.icon}</div>
-                            <div class="ach-title">${a.title}</div>
-                        </div>`;
-                });
-                catHtml += `</div>`;
-                container.innerHTML += catHtml;
-            }
-        }
-
-        function toggleShowcase(achId) {
-            if (!currentUser) return;
-            const data = allUsersData[currentUser];
-            let showcase = data.showcase || [];
-            
-            if (showcase.includes(achId)) {
-                showcase = showcase.filter(id => id !== achId);
-            } else {
-                if (showcase.length >= 3) return alert("K chlubení si můžeš vybrat maximálně 3 achievementy! Nějaký odklikni.");
-                showcase.push(achId);
-            }
-            db.ref(`users/${currentUser}`).update({ showcase: showcase });
-        }
-
-        db.ref('users').on('value', (snapshot) => {
-            allUsersData = snapshot.val() || {};
-            updateLeaderboard();
-            
-            const userSelect = document.getElementById('user-select');
-            const selectedVal = userSelect.value;
-            userSelect.innerHTML = '<option value="">-- Kdo jde cvičit? --</option>';
-            Object.keys(allUsersData).forEach(key => {
-                const opt = document.createElement('option');
-                opt.value = key; opt.textContent = allUsersData[key].name;
-                userSelect.appendChild(opt);
-            });
-            if(selectedVal && allUsersData[selectedVal]) userSelect.value = selectedVal;
-            
-            if (currentUser && allUsersData[currentUser]) updateProfileUI();
-        });
-
-        function changeLeaderboard(sortType, btnElement) {
-            currentSort = sortType;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btnElement.classList.add('active');
-            updateLeaderboard();
-        }
-
-        function updateLeaderboard() {
-            let usersArray = Object.keys(allUsersData).map(key => {
-                let u = allUsersData[key];
-                let displayStreak = calculateCurrentStreak(u);
-                let thisMonthTime = 0;
-                let now = new Date();
-                if (u.history) {
-                    Object.values(u.history).forEach(log => {
-                        let d = new Date(log.timestamp);
-                        if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
-                            thisMonthTime += log.duration;
-                        }
-                    });
-                }
-                
-                let achCount = ACHIEVEMENTS.filter(a => a.req(u)).length;
-                
-                return { id: key, ...u, displayStreak, thisMonthTime, actStatus: getActivityStatus(u), achCount };
-            });
-
-            let globalMaxPlank = Math.max(...usersArray.map(u => u.longestPlank || 0));
-            let globalMaxStreak = Math.max(...usersArray.map(u => u.displayStreak || 0));
-            let totalPossibleAch = ACHIEVEMENTS.length;
-
-            usersArray.sort((a, b) => {
-                if (currentSort === 'total') return (b.totalTime || 0) - (a.totalTime || 0);
-                if (currentSort === 'month') return (b.thisMonthTime || 0) - (a.thisMonthTime || 0);
-                if (currentSort === 'max') return (b.longestPlank || 0) - (a.longestPlank || 0);
-                if (currentSort === 'streak') return (b.displayStreak || 0) - (a.displayStreak || 0);
-            });
-
-            let statsHtml = '';
-            usersArray.forEach((user, index) => {
-                let mainStatLabel = ''; let mainStatValue = ''; let subStatText = ''; let diffValue = 0;
-                
-                if (currentSort === 'total') {
-                    mainStatLabel = 'Celkem:'; mainStatValue = formatTimeLong(user.totalTime || 0);
-                    subStatText = `Max: ${formatTimeLong(user.longestPlank || 0)} | Úspěchy: ${user.achCount}/${totalPossibleAch}`;
-                    diffValue = index > 0 ? (usersArray[index-1].totalTime || 0) - (user.totalTime || 0) : 0;
-                } else if (currentSort === 'month') {
-                    mainStatLabel = 'Tento měsíc:'; mainStatValue = formatTimeLong(user.thisMonthTime);
-                    subStatText = `Celkově: ${formatTimeLong(user.totalTime || 0)} | Úspěchy: ${user.achCount}`;
-                    diffValue = index > 0 ? usersArray[index-1].thisMonthTime - user.thisMonthTime : 0;
-                } else if (currentSort === 'max') {
-                    mainStatLabel = 'Max výdrž:'; mainStatValue = formatTimeLong(user.longestPlank || 0);
-                    subStatText = `Série: ${user.displayStreak} | Úspěchy: ${user.achCount}/${totalPossibleAch}`;
-                    diffValue = index > 0 ? (usersArray[index-1].longestPlank || 0) - (user.longestPlank || 0) : 0;
-                } else if (currentSort === 'streak') {
-                    mainStatLabel = 'Série:'; mainStatValue = `${user.displayStreak} dní`;
-                    subStatText = `Celkem: ${formatTimeLong(user.totalTime || 0)} | Úspěchy: ${user.achCount}`;
-                    diffValue = index > 0 ? usersArray[index-1].displayStreak - user.displayStreak : 0;
-                }
-
-                let showcaseHtml = (user.showcase || []).map(id => {
-                    let a = ACHIEVEMENTS.find(x => x.id === id);
-                    return a ? `<span title="${a.title}" style="font-size: 14px; background:#444; padding:2px; border-radius:5px; margin-left:3px;">${a.icon}</span>` : '';
-                }).join('');
-
-                let badges = [];
-                if (currentSort !== 'streak' && user.displayStreak > 0) badges.push(`<span style="background:#ff9800; color:#000; padding:2px 5px; border-radius:8px; font-size:10px;">🔥 ${user.displayStreak}</span>`);
-                if (user.longestPlank > 0 && user.longestPlank === globalMaxPlank) badges.push(`<span title="Nejdelší výdrž ze všech">💪</span>`);
-                if (user.displayStreak > 0 && user.displayStreak === globalMaxStreak) badges.push(`<span title="Největší série ze všech">🌟</span>`); 
-                
-                let rankVisual = '';
-                if (index === 0) rankVisual = '<div class="rank-box" style="font-size: 1.6em;">🥇</div>';
-                else if (index === 1) rankVisual = '<div class="rank-box" style="font-size: 1.6em;">🥈</div>';
-                else if (index === 2) rankVisual = '<div class="rank-box" style="font-size: 1.6em;">🥉</div>';
-                else rankVisual = `<div class="rank-box">${index + 1}.</div>`;
-                
-                let diffTextHtml = '';
-                if (index > 0 && diffValue > 0) {
-                    let diffFormat = currentSort === 'streak' ? `${diffValue} dní` : formatTimeLong(diffValue);
-                    diffTextHtml = `<div class="diff-text">Chybí ${diffFormat} na ${usersArray[index-1].name} ⬆️</div>`;
-                }
-
-                statsHtml += `
-                    <div class="stat-item">
-                        ${rankVisual}
-                        <div style="font-size:35px; margin-right:15px;">${user.avatar || '👤'}</div>
-                        <div class="player-info">
-                            <div class="player-name-row">
-                                <span class="status-dot status-${user.actStatus}"></span>
-                                ${user.name} 
-                                ${badges.join(' ')}
-                                ${showcaseHtml}
-                            </div>
-                            <div class="stat-main-val">${mainStatLabel} ${mainStatValue}</div>
-                            <div class="stat-sub-val">${subStatText}</div>
-                            ${diffTextHtml}
-                        </div>
-                        <button class="view-profile-btn" onclick="openPublicProfile('${user.id}')">👁️ Profil</button>
-                    </div>`;
-            });
-            
-            document.getElementById('stats-list').innerHTML = usersArray.length === 0 ? '<div style="color:#aaa;">Zatím žádná data. Přidej se!</div>' : statsHtml;
-        }
-
-        document.getElementById('user-select').addEventListener('change', (e) => {
-            if(e.target.value) {
-                currentUser = e.target.value;
-                hideAll(); document.getElementById('profile-section').style.display = 'block';
-                updateProfileUI();
-            }
-        });
-
-        function hideAll() {
-            ['setup-section', 'profile-section', 'workout-section', 'public-profile-section'].forEach(id => document.getElementById(id).style.display = 'none');
-        }
-
-        function logout() {
-            currentUser = null;
-            hideAll(); document.getElementById('setup-section').style.display = 'block';
-            document.getElementById('user-select').value = "";
-        }
-
-        function openPublicProfile(userId) {
-            const data = allUsersData[userId];
-            if(!data) return;
-            hideAll(); document.getElementById('public-profile-section').style.display = 'block';
-            
-            document.getElementById('pub-profile-name').textContent = data.name;
-            document.getElementById('pub-avatar-display').textContent = data.avatar || '👤';
-            let streak = calculateCurrentStreak(data);
-            document.getElementById('pub-streak-display').textContent = streak > 0 ? `🔥 Série: ${streak} dní` : '';
-            document.getElementById('pub-level-display').textContent = getLevel(data.totalTime || 0);
-            document.getElementById('pub-total-time').textContent = formatTimeLong(data.totalTime || 0);
-            document.getElementById('pub-max-time').textContent = formatTimeLong(data.longestPlank || 0);
-            document.getElementById('pub-workout-count').textContent = getWorkoutCount(data);
-            
-            renderAchievements('pub-achievements-container', data, false);
-        }
-
-        function closePublicProfile() {
-            hideAll(); document.getElementById('setup-section').style.display = 'block';
-        }
-
-        function goToWorkout() {
-            hideAll(); document.getElementById('workout-section').style.display = 'block';
-            document.getElementById('workout-user-name').textContent = `Jdeme na to, ${allUsersData[currentUser].name}!`;
-        }
-
-        function cancelWorkout() {
-            clearInterval(timerInterval); clearInterval(countdownInterval);
-            isPlanking = false; secondsElapsed = 0;
-            document.getElementById('timer-display').textContent = "00:00";
-            document.getElementById('countdown-display').textContent = "";
-            document.getElementById('stop-btn').style.display = 'none';
-            document.getElementById('start-btn').style.display = 'inline-block';
-            hideAll(); document.getElementById('profile-section').style.display = 'block';
-        }
-
-        function updateProfileUI() {
-            const data = allUsersData[currentUser];
-            if(!data) return;
-            
-            let streak = calculateCurrentStreak(data);
-            document.getElementById('profile-name').textContent = data.name;
-            document.getElementById('avatar-display').textContent = data.avatar || '👤';
-            document.getElementById('streak-display').textContent = streak > 0 ? `🔥 Série: ${streak} dní` : '';
-            document.getElementById('level-display').textContent = getLevel(data.totalTime || 0);
-
-            let restDays = data.restDays || [false,false,false,false,false,false,false];
-            document.querySelectorAll('.day-box').forEach(box => {
-                let d = parseInt(box.getAttribute('data-day'));
-                box.classList.toggle('rest', restDays[d]);
-            });
-
-            renderAchievements('my-achievements-container', data, true);
-
-            const historyList = document.getElementById('history-list');
-            historyList.innerHTML = '';
-            if (data.history) {
-                let logs = Object.keys(data.history).map(k => ({ id: k, ...data.history[k] })).reverse();
-                logs.forEach(log => {
-                    let d = new Date(log.timestamp).toLocaleString('cs-CZ', {day:'numeric', month:'numeric', hour:'2-digit', minute:'2-digit'});
-                    historyList.innerHTML += `
-                        <div class="history-item">
-                            <span>🕒 ${d} - <strong>${formatTimeLong(log.duration)}</strong></span>
-                            <button class="del-btn" onclick="deleteWorkoutLog('${log.id}')">Smazat</button>
-                        </div>`;
-                });
-            } else {
-                historyList.innerHTML = '<div style="color:#666;">Zatím žádné tréninky.</div>';
-            }
-        }
-
-        function changeAvatar() {
-            let current = document.getElementById('avatar-display').textContent;
-            let nextIdx = (avatars.indexOf(current) + 1) % avatars.length;
-            db.ref(`users/${currentUser}`).update({ avatar: avatars[nextIdx] });
-        }
-
-        document.querySelectorAll('.day-box').forEach(box => {
-            box.addEventListener('click', () => {
-                if (!currentUser) return;
-                let d = parseInt(box.getAttribute('data-day'));
-                let r = allUsersData[currentUser].restDays || [false,false,false,false,false,false,false];
-                r[d] = !r[d];
-                db.ref(`users/${currentUser}`).update({ restDays: r });
-            });
-        });
-
-        function addUser() {
-            const name = document.getElementById('new-user-name').value.trim();
-            const pin = document.getElementById('new-user-pin').value.trim();
-            if (!name) return alert("Zadej jméno!");
-            if (!pin) return alert("Zadej 4místný PIN pro ochranu profilu!");
-            
-            db.ref('users').push({ 
-                name: name,
-                pin: pin,
-                totalTime: 0, longestPlank: 0, streak: 0, lastDate: null, avatar: '👤',
-                restDays: [false,false,false,false,false,false,false],
-                achievements: {}, showcase: []
-            }).then(() => {
-                document.getElementById('new-user-name').value = '';
-                document.getElementById('new-user-pin').value = '';
-            }).catch(err => alert("Chyba: " + err.message));
-        }
-
-        function deleteProfile() {
-            if (!currentUser) return;
-            const data = allUsersData[currentUser];
-            const userPin = data.pin || "0000"; // Zpětná kompatibilita
-            
-            let enteredPin = prompt("Pro smazání profilu zadej svůj PIN:\n(Staré profily mají 0000)");
-            if (enteredPin === null) return;
-            
-            if (enteredPin === userPin || enteredPin === "5555") {
-                if (confirm("Opravdu smazat profil? Vše zmizí a akci nelze vrátit!")) {
-                    db.ref(`users/${currentUser}`).remove().then(logout);
-                }
-            } else {
-                alert("❌ Nesprávný PIN!");
-            }
-        }
-
-        function deleteWorkoutLog(logId) {
-            if (!currentUser) return;
-            const data = allUsersData[currentUser];
-            const userPin = data.pin || "0000"; 
-            
-            let enteredPin = prompt("Pro smazání tréninku zadej svůj PIN:");
-            if (enteredPin === null) return;
-            
-            if (enteredPin === userPin || enteredPin === "5555") {
-                if (!confirm("Smazat tento trénink? Čas se odečte ze statistik.")) return;
-                db.ref(`users/${currentUser}/history/${logId}`).remove().then(() => {
-                    db.ref(`users/${currentUser}/history`).once('value', snap => {
-                        let hists = snap.val() || {}; let newTotal = 0; let newMax = 0;
-                        Object.values(hists).forEach(h => { newTotal += h.duration; if (h.duration > newMax) newMax = h.duration; });
-                        db.ref(`users/${currentUser}`).update({ totalTime: newTotal, longestPlank: newMax });
-                    });
-                });
-            } else {
-                alert("❌ Nesprávný PIN!");
-            }
-        }
-
-        function startCountdown() {
-            document.getElementById('start-btn').style.display = 'none';
-            document.getElementById('cancel-btn').style.display = 'none';
-            if(audioCtx.state === 'suspended') audioCtx.resume();
-            
-            let count = 3;
-            document.getElementById('countdown-display').textContent = `Připrav se... ${count}`;
-            playSound('beep');
-            countdownInterval = setInterval(() => {
-                count--;
-                if (count > 0) {
-                    document.getElementById('countdown-display').textContent = `Připrav se... ${count}`;
-                    playSound('beep');
-                } else {
-                    clearInterval(countdownInterval);
-                    document.getElementById('countdown-display').textContent = "🔥 JEĎ! 🔥";
-                    playSound('gong');
-                    setTimeout(() => document.getElementById('countdown-display').textContent = "", 1500);
-                    startPlank();
-                }
-            }, 1000);
-        }
-
-        function startPlank() {
-            isPlanking = true;
-            document.getElementById('stop-btn').style.display = 'inline-block';
-            secondsElapsed = 0; document.getElementById('timer-display').textContent = "00:00";
-            timerInterval = setInterval(() => {
-                secondsElapsed++;
-                document.getElementById('timer-display').textContent = formatTime(secondsElapsed);
-            }, 1000);
-        }
-
-        function stopTimer() {
-            if (!isPlanking) return;
-            clearInterval(timerInterval); isPlanking = false;
-            playSound('gong');
-            
-            const data = allUsersData[currentUser];
-            let currentStreak = calculateCurrentStreak(data);
-            const isPersonalRecord = secondsElapsed > (data.longestPlank || 0) && secondsElapsed > 10;
-            
-            if (isPersonalRecord) confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-            
-            const newTotal = (data.totalTime || 0) + secondsElapsed;
-            const newLongest = Math.max(data.longestPlank || 0, secondsElapsed);
-            
-            let updates = { totalTime: newTotal, longestPlank: newLongest };
-            
-            let achUpdates = data.achievements || {};
-            let d = new Date();
-            let month = d.getMonth(); 
-            let date = d.getDate();
-            let day = d.getDay(); 
-            let hour = d.getHours();
-
-            if (isPersonalRecord && currentStreak >= 30) achUpdates['ach_second_wind'] = true;
-            
-            if (day === 0 || day === 6) {
-                let historyArr = Object.values(data.history || {});
-                historyArr.push({timestamp: Date.now()}); 
-                let recent = historyArr.filter(log => (Date.now() - log.timestamp) < 3 * 24 * 3600 * 1000);
-                let hasSat = recent.some(l => new Date(l.timestamp).getDay() === 6);
-                let hasSun = recent.some(l => new Date(l.timestamp).getDay() === 0);
-                if (hasSat && hasSun) achUpdates['ach_weekend'] = true;
-            }
-
-            if (hour >= 6 && hour < 8) achUpdates['time_morning'] = true;
-            if (hour >= 20 || hour === 23) achUpdates['time_night'] = true;
-            if (month === 11 && date === 24) achUpdates['ach_xmas'] = true; 
-            if (month === 11 && date === 31) achUpdates['ach_nye'] = true; 
-            if (month === 0 && date === 1) achUpdates['ach_ny'] = true; 
-            if (month === 9 && date === 31) achUpdates['ach_hallo'] = true; 
-            if (month === 1 && date === 14) achUpdates['ach_val'] = true; 
-            if (month === 1 && date === 29) achUpdates['ach_leap'] = true; 
-            if (day === 5 && date === 13) achUpdates['ach_fri13'] = true; 
-            
-            if (secondsElapsed === 201) achUpdates['ach_321'] = true; 
-            if (secondsElapsed === 244) achUpdates['ach_404'] = true; 
-            if (secondsElapsed === 194) achUpdates['ach_pi'] = true;  
-
-            updates.achievements = achUpdates;
-
-            let todayStr = new Date().toLocaleDateString('en-CA');
-            if (data.lastDate !== todayStr) {
-                updates.streak = currentStreak + 1;
-                updates.lastDate = todayStr;
-            }
-
-            db.ref(`users/${currentUser}/history`).push({ duration: secondsElapsed, timestamp: Date.now() });
-            
-            db.ref(`users/${currentUser}`).update(updates).then(() => {
-                setTimeout(() => {
-                    let msg = isPersonalRecord ? "NOVÝ OSOBNÍ REKORD! 🎉\n\n" : "Skvělá práce!\n\n";
-                    alert(msg + `Čas: ${formatTimeLong(secondsElapsed)}`);
-                    cancelWorkout();
-                }, 500);
-            });
-        }
-    </script>
-</body>
-</html>
+            { id: 'str_10', cat: 'Série (Streak)', title: '1
