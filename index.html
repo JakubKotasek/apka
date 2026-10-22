@@ -27,7 +27,6 @@
         .stat-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #444; display: flex; align-items: flex-start; justify-content: space-between; }
         .stat-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         .rank-box { width: 35px; text-align: center; font-size: 1.4em; font-weight: bold; color: #888; margin-right: 10px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; margin-top: 5px;}
-        .rank-box.crown { color: gold; font-size: 1.6em; }
         
         .player-info { flex-grow: 1; display: flex; flex-direction: column; text-align: left; }
         .player-name-row { font-weight: bold; font-size: 1.1em; margin-bottom: 5px; display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
@@ -48,9 +47,11 @@
         
         .achievements-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin: 15px 0; }
         .ach-box { background: #333; border-radius: 8px; padding: 8px 5px; text-align: center; font-size: 24px; opacity: 0.3; filter: grayscale(100%); transition: 0.3s; position: relative; }
-        .ach-box.unlocked { opacity: 1; filter: grayscale(0%); background: #3a4a3a; box-shadow: 0 0 5px rgba(76, 175, 80, 0.3); border: 1px solid #4caf50; }
+        .ach-box.unlocked { opacity: 1; filter: grayscale(0%); background: #3a4a3a; box-shadow: 0 0 5px rgba(76, 175, 80, 0.3); border: 1px solid #4caf50; cursor: pointer; }
+        .ach-box.unlocked:active { transform: scale(0.95); }
         .ach-title { font-size: 9px; color: #fff; margin-top: 5px; line-height: 1.1; word-wrap: break-word; }
         .ach-category-title { font-size: 13px; color: #aaa; text-align: left; margin-top: 15px; margin-bottom: 5px; border-bottom: 1px solid #444; padding-bottom: 3px; }
+        .showcase-star { position: absolute; top: -5px; right: -5px; font-size: 14px; text-shadow: 0 0 5px black; }
         
         .days-container { display: flex; justify-content: space-between; margin: 15px 0; background: #2a2a2a; padding: 10px; border-radius: 8px;}
         .day-box { width: 35px; height: 35px; background: #444; border-radius: 5px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; user-select: none; }
@@ -59,6 +60,9 @@
         .history-list { max-height: 150px; overflow-y: auto; background: #222; padding: 10px; border-radius: 8px; text-align: left; margin-bottom: 15px; }
         .history-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #444; font-size: 14px; }
         .del-btn { background: transparent; color: #f44336; padding: 2px 5px; margin: 0; width: auto; font-size: 12px; }
+
+        .settings-row { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 10px; border-radius: 8px; margin-top: 10px;}
+        .settings-row input[type="time"] { width: auto; padding: 5px; margin: 0; background: #333; color: white; border: 1px solid #555; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -106,10 +110,18 @@
             <div id="level-display" class="level-badge"></div>
             <button onclick="goToWorkout()" style="font-size: 18px; padding: 15px; margin-bottom: 15px;">JÍT CVIČIT 💪</button>
 
-            <div style="text-align: left; font-weight: bold; color: #ffeb3b; margin-top: 10px;">🏅 Tvoje Vitrína</div>
-            <div id="my-achievements-container" style="background: #222; padding: 10px; border-radius: 8px; margin-top: 5px; max-height: 250px; overflow-y: auto;"></div>
+            <!-- Upozornění (Notifikace) -->
+            <div style="font-size: 12px; color: #888; text-align: left;">🔔 Chytré upozornění (ve cvičící dny):</div>
+            <div class="settings-row">
+                <span style="font-size: 14px;">Čas připomenutí:</span>
+                <div style="display: flex; gap: 5px;">
+                    <input type="time" id="reminder-time">
+                    <button onclick="setReminder()" style="margin:0; padding: 5px 10px; width: auto; font-size: 12px;">Uložit</button>
+                </div>
+            </div>
 
-            <div style="font-size: 12px; color: #888; text-align: left; margin-top: 15px;">Dny odpočinku (Kliknutím zmodrá):</div>
+            <!-- Dny odpočinku -->
+            <div style="font-size: 12px; color: #888; text-align: left; margin-top: 15px;">💤 Dny odpočinku (Kliknutím zmodrá):</div>
             <div class="days-container" id="rest-days-container">
                 <div class="day-box" data-day="0">Po</div>
                 <div class="day-box" data-day="1">Út</div>
@@ -119,8 +131,11 @@
                 <div class="day-box" data-day="5">So</div>
                 <div class="day-box" data-day="6">Ne</div>
             </div>
+
+            <div style="text-align: left; font-weight: bold; color: #ffeb3b; margin-top: 15px;">🏅 Tvoje Vitrína (Kliknutím vyber 3 k chlubení)</div>
+            <div id="my-achievements-container" style="background: #222; padding: 10px; border-radius: 8px; margin-top: 5px; max-height: 250px; overflow-y: auto;"></div>
             
-            <div style="font-size: 12px; color: #888; text-align: left;">Historie:</div>
+            <div style="font-size: 12px; color: #888; text-align: left; margin-top: 15px;">🕒 Historie:</div>
             <div class="history-list" id="history-list"></div>
 
             <button class="text-btn" onclick="logout()">🔙 Zpět na výběr osoby</button>
@@ -194,15 +209,28 @@
         }
 
         const ACHIEVEMENTS = [
-            // Max Výdrž
+            { id: 'max_45s', cat: 'Nejdelší výdrž', title: '45 s: První krůčky', icon: '🐣', req: (d) => (d.longestPlank || 0) >= 45 },
             { id: 'max_1m', cat: 'Nejdelší výdrž', title: '1 min: První milník', icon: '⏱️', req: (d) => (d.longestPlank || 0) >= 60 },
+            { id: 'max_90s', cat: 'Nejdelší výdrž', title: '1.5 min: Zahřívací kolo', icon: '☕', req: (d) => (d.longestPlank || 0) >= 90 },
             { id: 'max_2m', cat: 'Nejdelší výdrž', title: '2 min: Slušný základ', icon: '👍', req: (d) => (d.longestPlank || 0) >= 120 },
             { id: 'max_3m', cat: 'Nejdelší výdrž', title: '3 min: Břicho z kamene', icon: '🪨', req: (d) => (d.longestPlank || 0) >= 180 },
+            { id: 'max_4m', cat: 'Nejdelší výdrž', title: '4 min: Čtyřlístek', icon: '🍀', req: (d) => (d.longestPlank || 0) >= 240 },
             { id: 'max_5m', cat: 'Nejdelší výdrž', title: '5 min: Ocelová deska', icon: '🛡️', req: (d) => (d.longestPlank || 0) >= 300 },
+            { id: 'max_6m', cat: 'Nejdelší výdrž', title: '6 min: Ďáblovo pokušení', icon: '😈', req: (d) => (d.longestPlank || 0) >= 360 },
             { id: 'max_7m', cat: 'Nejdelší výdrž', title: '7.5 min: Učeň', icon: '🦾', req: (d) => (d.longestPlank || 0) >= 450 },
+            { id: 'max_8m', cat: 'Nejdelší výdrž', title: '8 min: Ležatá osmička', icon: '♾️', req: (d) => (d.longestPlank || 0) >= 480 },
             { id: 'max_10m', cat: 'Nejdelší výdrž', title: '10 min: Anomálie', icon: '🌌', req: (d) => (d.longestPlank || 0) >= 600 },
+            { id: 'max_12m', cat: 'Nejdelší výdrž', title: '12 min: Tucet bolesti', icon: '🍩', req: (d) => (d.longestPlank || 0) >= 720 },
+            { id: 'max_15m', cat: 'Nejdelší výdrž', title: '15 min: Akademická 1/4h', icon: '🎓', req: (d) => (d.longestPlank || 0) >= 900 },
+            { id: 'max_18m', cat: 'Nejdelší výdrž', title: '18 min: Plnoletost', icon: '🔞', req: (d) => (d.longestPlank || 0) >= 1080 },
+            { id: 'max_20m', cat: 'Nejdelší výdrž', title: '20 min: Dvacítka na krku', icon: '🦢', req: (d) => (d.longestPlank || 0) >= 1200 },
+            { id: 'max_22m', cat: 'Nejdelší výdrž', title: '22 min: Hlava XXII', icon: '🤪', req: (d) => (d.longestPlank || 0) >= 1320 },
+            { id: 'max_25m', cat: 'Nejdelší výdrž', title: '25 min: Pomodoro', icon: '🍅', req: (d) => (d.longestPlank || 0) >= 1500 },
+            { id: 'max_30m', cat: 'Nejdelší výdrž', title: '30 min: Půlhodina pravdy', icon: '⏳', req: (d) => (d.longestPlank || 0) >= 1800 },
+            { id: 'max_33m', cat: 'Nejdelší výdrž', title: '33 min: Kristova léta', icon: '✝️', req: (d) => (d.longestPlank || 0) >= 1980 },
+            { id: 'max_38m', cat: 'Nejdelší výdrž', title: '38 min: Horečka', icon: '🌡️', req: (d) => (d.longestPlank || 0) >= 2280 },
+            { id: 'max_42m', cat: 'Nejdelší výdrž', title: '42 min: Smysl vesmíru', icon: '🛸', req: (d) => (d.longestPlank || 0) >= 2520 },
             
-            // Celkový čas
             { id: 'tot_1h', cat: 'Celkový čas', title: '1h: Pokročilá brambora', icon: '🥔', req: (d) => (d.totalTime || 0) >= 3600 },
             { id: 'tot_2h', cat: 'Celkový čas', title: '2h: Pevný základ', icon: '🏗️', req: (d) => (d.totalTime || 0) >= 7200 },
             { id: 'tot_3h', cat: 'Celkový čas', title: '3h: Filmový maraton', icon: '🍿', req: (d) => (d.totalTime || 0) >= 10800 },
@@ -217,25 +245,35 @@
             { id: 'tot_100h', cat: 'Celkový čas', title: '100h: Magor!', icon: '🤯', req: (d) => (d.totalTime || 0) >= 360000 },
             { id: 'tot_135h', cat: 'Celkový čas', title: '135h: Hobití putování', icon: '🌋', req: (d) => (d.totalTime || 0) >= 486000 },
             
-            // Počet tréninků
             { id: 'cnt_1', cat: 'Počet tréninků', title: '1. cvičení: První krok', icon: '👶', req: (d) => getWorkoutCount(d) >= 1 },
+            { id: 'cnt_7', cat: 'Počet tréninků', title: '7x: Zkušební verze', icon: '🎫', req: (d) => getWorkoutCount(d) >= 7 },
             { id: 'cnt_10', cat: 'Počet tréninků', title: '10x: Zahřátí', icon: '🔥', req: (d) => getWorkoutCount(d) >= 10 },
             { id: 'cnt_30', cat: 'Počet tréninků', title: '30x: Měsíc v pohybu', icon: '📅', req: (d) => getWorkoutCount(d) >= 30 },
+            { id: 'cnt_50', cat: 'Počet tréninků', title: '50x: Věrný zákazník', icon: '🛒', req: (d) => getWorkoutCount(d) >= 50 },
             { id: 'cnt_100', cat: 'Počet tréninků', title: '100x: Klub stovkařů', icon: '💯', req: (d) => getWorkoutCount(d) >= 100 },
+            { id: 'cnt_200', cat: 'Počet tréninků', title: '200x: Dvojitý agent', icon: '🕵️‍♂️', req: (d) => getWorkoutCount(d) >= 200 },
+            { id: 'cnt_365', cat: 'Počet tréninků', title: '365x: Rok v pohybu', icon: '🌍', req: (d) => getWorkoutCount(d) >= 365 },
+            { id: 'cnt_500', cat: 'Počet tréninků', title: '500x: Sparťan', icon: '🛡️', req: (d) => getWorkoutCount(d) >= 500 },
+            { id: 'cnt_1000', cat: 'Počet tréninků', title: '1000x: Legenda prkna', icon: '🦸‍♂️', req: (d) => getWorkoutCount(d) >= 1000 },
             
-            // Série
+            { id: 'str_3', cat: 'Série (Streak)', title: '3 dny: Hattrick', icon: '🎩', req: (d) => calculateCurrentStreak(d) >= 3 },
             { id: 'str_5', cat: 'Série (Streak)', title: '5 dní: Jiskra', icon: '✨', req: (d) => calculateCurrentStreak(d) >= 5 },
             { id: 'str_10', cat: 'Série (Streak)', title: '10 dní: Plamen', icon: '🔥', req: (d) => calculateCurrentStreak(d) >= 10 },
+            { id: 'str_14', cat: 'Série (Streak)', title: '14 dní: Bez výmluv', icon: '🗓️', req: (d) => calculateCurrentStreak(d) >= 14 },
+            { id: 'str_21', cat: 'Série (Streak)', title: '21 dní: Nový zvyk', icon: '🧠', req: (d) => calculateCurrentStreak(d) >= 21 },
             { id: 'str_30', cat: 'Série (Streak)', title: '30 dní: Požár', icon: '🚒', req: (d) => calculateCurrentStreak(d) >= 30 },
+            { id: 'str_50', cat: 'Série (Streak)', title: '50 dní: Zlatý střed', icon: '🪙', req: (d) => calculateCurrentStreak(d) >= 50 },
+            { id: 'str_100', cat: 'Série (Streak)', title: '100 dní: Maraton', icon: '💯', req: (d) => calculateCurrentStreak(d) >= 100 },
+            { id: 'str_365', cat: 'Série (Streak)', title: '365 dní: Železný rok', icon: '⚔️', req: (d) => calculateCurrentStreak(d) >= 365 },
 
-            // Styl a disciplína
+            { id: 'ach_spring', cat: 'Styl a disciplína', title: 'Jarní probuzení (30x jaro)', icon: '🌱', req: (d) => getSeasonWorkoutCount(d, [2, 3, 4]) >= 30 },
+            { id: 'ach_summer', cat: 'Styl a disciplína', title: 'Plážová forma (30x léto)', icon: '☀️', req: (d) => getSeasonWorkoutCount(d, [5, 6, 7]) >= 30 },
+            { id: 'ach_autumn', cat: 'Styl a disciplína', title: 'Podzimní vytrvalec (30x podzim)', icon: '🍂', req: (d) => getSeasonWorkoutCount(d, [8, 9, 10]) >= 30 },
+            { id: 'ach_winter', cat: 'Styl a disciplína', title: 'Zimní voják (30x zima)', icon: '❄️', req: (d) => getSeasonWorkoutCount(d, [11, 0, 1]) >= 30 },
             { id: 'ach_heavy', cat: 'Styl a disciplína', title: 'Těžkooděnec (7 dní bez pauzy)', icon: '🛡️', req: (d) => calculateCurrentStreak(d) >= 7 && !(d.restDays || []).some(r => r === true) },
-            { id: 'ach_winter', cat: 'Styl a disciplína', title: 'Zimní voják (30x v zimě)', icon: '❄️', req: (d) => getSeasonWorkoutCount(d, [11, 0, 1]) >= 30 },
-            { id: 'ach_summer', cat: 'Styl a disciplína', title: 'Plážová forma (30x v létě)', icon: '☀️', req: (d) => getSeasonWorkoutCount(d, [5, 6, 7]) >= 30 },
             { id: 'ach_weekend', cat: 'Styl a disciplína', title: 'Víkendový válečník (So+Ne)', icon: '⚔️', req: (d) => (d.achievements && d.achievements['ach_weekend']) },
             { id: 'ach_second_wind', cat: 'Styl a disciplína', title: 'Druhý dech (Rekord po 30d)', icon: '🧟‍♂️', req: (d) => (d.achievements && d.achievements['ach_second_wind']) },
 
-            // Tajné výzvy & Svátky
             { id: 'time_morning', cat: 'Tajné výzvy & Svátky', title: 'Ranní ptáče (6:00-8:00)', icon: '🌅', req: (d) => (d.achievements && d.achievements['time_morning']) },
             { id: 'time_night', cat: 'Tajné výzvy & Svátky', title: 'Noční zvíře (20:00-0:00)', icon: '🦉', req: (d) => (d.achievements && d.achievements['time_night']) },
             { id: 'ach_xmas', cat: 'Tajné výzvy & Svátky', title: 'Zlaté prasátko (24.12.)', icon: '🐷', req: (d) => (d.achievements && d.achievements['ach_xmas']) },
@@ -253,17 +291,22 @@
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
+            const t = audioCtx.currentTime;
+            
             if (type === 'beep') {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.5, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(600, t);
+                gain.gain.setValueAtTime(0, t); gain.gain.linearRampToValueAtTime(0.3, t + 0.05); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(t); osc.stop(t + 0.2);
             } else if (type === 'gong') {
-                osc.type = 'square'; osc.frequency.setValueAtTime(250, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 1.5);
-                gain.gain.setValueAtTime(0.5, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
-                osc.start(); osc.stop(audioCtx.currentTime + 1.5);
+                const osc1 = audioCtx.createOscillator(); const osc2 = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+                osc1.type = 'sine'; osc2.type = 'sine';
+                osc1.frequency.setValueAtTime(440, t); osc2.frequency.setValueAtTime(444, t);
+                gainNode.gain.setValueAtTime(0, t); gainNode.gain.linearRampToValueAtTime(0.5, t + 0.1); gainNode.gain.exponentialRampToValueAtTime(0.001, t + 2.5);
+                osc1.connect(gainNode); osc2.connect(gainNode); gainNode.connect(audioCtx.destination);
+                osc1.start(t); osc2.start(t); osc1.stop(t + 3); osc2.stop(t + 3);
             }
         }
 
@@ -310,7 +353,8 @@
             return 'sleep';
         }
 
-        function renderAchievements(containerId, userData) {
+        // --- Zobrazení achievementů + logiky výstavky ---
+        function renderAchievements(containerId, userData, isOwnProfile = false) {
             const container = document.getElementById(containerId);
             container.innerHTML = '';
             const categories = {};
@@ -322,12 +366,74 @@
                 let catHtml = `<div class="ach-category-title">${catName}</div><div class="achievements-grid">`;
                 achList.forEach(a => {
                     const isUnlocked = a.req(userData);
-                    catHtml += `<div class="ach-box ${isUnlocked ? 'unlocked' : ''}" title="${a.title}"><div>${a.icon}</div><div class="ach-title">${a.title}</div></div>`;
+                    const isShowcased = (userData.showcase || []).includes(a.id);
+                    
+                    let onClick = (isOwnProfile && isUnlocked) ? `onclick="toggleShowcase('${a.id}')"` : '';
+                    let showcaseBadge = isShowcased ? `<div class="showcase-star">⭐</div>` : '';
+                    
+                    catHtml += `
+                        <div class="ach-box ${isUnlocked ? 'unlocked' : ''}" title="${a.title}" ${onClick}>
+                            ${showcaseBadge}
+                            <div>${a.icon}</div>
+                            <div class="ach-title">${a.title}</div>
+                        </div>`;
                 });
                 catHtml += `</div>`;
                 container.innerHTML += catHtml;
             }
         }
+
+        function toggleShowcase(achId) {
+            if (!currentUser) return;
+            const data = allUsersData[currentUser];
+            let showcase = data.showcase || [];
+            
+            if (showcase.includes(achId)) {
+                showcase = showcase.filter(id => id !== achId);
+            } else {
+                if (showcase.length >= 3) return alert("K chlubení si můžeš vybrat maximálně 3 achievementy! Nějaký odklikni.");
+                showcase.push(achId);
+            }
+            db.ref(`users/${currentUser}`).update({ showcase: showcase });
+        }
+
+        // --- Upozornění (Notifikace) ---
+        function setReminder() {
+            let time = document.getElementById('reminder-time').value;
+            if (!time) return alert("Vyber platný čas.");
+            db.ref(`users/${currentUser}`).update({ reminderTime: time }).then(() => {
+                if (window.Notification && Notification.permission !== 'granted') {
+                    Notification.requestPermission();
+                }
+                alert("Upozornění uloženo! Měj v tento čas otevřený prohlížeč.");
+            });
+        }
+
+        // Běží na pozadí a kontroluje čas (každých 20 vteřin)
+        setInterval(() => {
+            if(!currentUser) return;
+            let data = allUsersData[currentUser];
+            if(!data || !data.reminderTime) return;
+            
+            let d = new Date();
+            let hh = d.getHours().toString().padStart(2, '0');
+            let mm = d.getMinutes().toString().padStart(2, '0');
+            let currentTime = `${hh}:${mm}`;
+            
+            // Kontrola jestli je ten správný čas (a spouští se jen na začátku minuty)
+            if (currentTime === data.reminderTime && d.getSeconds() < 25) { 
+                let day = (d.getDay() + 6) % 7;
+                let restDays = data.restDays || [];
+                if(restDays[day]) return; // Je to rest day
+                
+                let todayStr = d.toLocaleDateString('en-CA');
+                if(data.lastDate === todayStr) return; // Už dnes cvičil
+                
+                if (window.Notification && Notification.permission === 'granted') {
+                    new Notification("Plank Tracker ⏱️", { body: "Je čas na tvůj dnešní plank! 🔥 Jdeme na to!" });
+                }
+            }
+        }, 20000);
 
         db.ref('users').on('value', (snapshot) => {
             allUsersData = snapshot.val() || {};
@@ -367,11 +473,16 @@
                         }
                     });
                 }
-                return { id: key, ...u, displayStreak, thisMonthTime, actStatus: getActivityStatus(u) };
+                
+                // Spočítáme počet odemčených achievementů
+                let achCount = ACHIEVEMENTS.filter(a => a.req(u)).length;
+                
+                return { id: key, ...u, displayStreak, thisMonthTime, actStatus: getActivityStatus(u), achCount };
             });
 
             let globalMaxPlank = Math.max(...usersArray.map(u => u.longestPlank || 0));
             let globalMaxStreak = Math.max(...usersArray.map(u => u.displayStreak || 0));
+            let totalPossibleAch = ACHIEVEMENTS.length;
 
             usersArray.sort((a, b) => {
                 if (currentSort === 'total') return (b.totalTime || 0) - (a.totalTime || 0);
@@ -386,28 +497,39 @@
                 
                 if (currentSort === 'total') {
                     mainStatLabel = 'Celkem:'; mainStatValue = formatTimeLong(user.totalTime || 0);
-                    subStatText = `Max: ${formatTimeLong(user.longestPlank || 0)}`;
+                    subStatText = `Max: ${formatTimeLong(user.longestPlank || 0)} | Úspěchy: ${user.achCount}/${totalPossibleAch}`;
                     diffValue = index > 0 ? (usersArray[index-1].totalTime || 0) - (user.totalTime || 0) : 0;
                 } else if (currentSort === 'month') {
                     mainStatLabel = 'Tento měsíc:'; mainStatValue = formatTimeLong(user.thisMonthTime);
-                    subStatText = `Celkově: ${formatTimeLong(user.totalTime || 0)}`;
+                    subStatText = `Celkově: ${formatTimeLong(user.totalTime || 0)} | Úspěchy: ${user.achCount}`;
                     diffValue = index > 0 ? usersArray[index-1].thisMonthTime - user.thisMonthTime : 0;
                 } else if (currentSort === 'max') {
                     mainStatLabel = 'Max výdrž:'; mainStatValue = formatTimeLong(user.longestPlank || 0);
-                    subStatText = `Série: ${user.displayStreak} dní`;
+                    subStatText = `Série: ${user.displayStreak} | Úspěchy: ${user.achCount}/${totalPossibleAch}`;
                     diffValue = index > 0 ? (usersArray[index-1].longestPlank || 0) - (user.longestPlank || 0) : 0;
                 } else if (currentSort === 'streak') {
                     mainStatLabel = 'Série:'; mainStatValue = `${user.displayStreak} dní`;
-                    subStatText = `Celkem: ${formatTimeLong(user.totalTime || 0)}`;
+                    subStatText = `Celkem: ${formatTimeLong(user.totalTime || 0)} | Úspěchy: ${user.achCount}`;
                     diffValue = index > 0 ? usersArray[index-1].displayStreak - user.displayStreak : 0;
                 }
+
+                // Výstavka achievementů u jména
+                let showcaseHtml = (user.showcase || []).map(id => {
+                    let a = ACHIEVEMENTS.find(x => x.id === id);
+                    return a ? `<span title="${a.title}" style="font-size: 14px; background:#444; padding:2px; border-radius:5px; margin-left:3px;">${a.icon}</span>` : '';
+                }).join('');
 
                 let badges = [];
                 if (currentSort !== 'streak' && user.displayStreak > 0) badges.push(`<span style="background:#ff9800; color:#000; padding:2px 5px; border-radius:8px; font-size:10px;">🔥 ${user.displayStreak}</span>`);
                 if (user.longestPlank > 0 && user.longestPlank === globalMaxPlank) badges.push(`<span title="Nejdelší výdrž ze všech">💪</span>`);
                 if (user.displayStreak > 0 && user.displayStreak === globalMaxStreak) badges.push(`<span title="Největší série ze všech">👑🔥</span>`);
                 
-                let rankVisual = index === 0 ? '<div class="rank-box crown">👑</div>' : `<div class="rank-box">${index + 1}.</div>`;
+                // Medaile podle umístění
+                let rankVisual = '';
+                if (index === 0) rankVisual = '<div class="rank-box">🏆</div>';
+                else if (index === 1) rankVisual = '<div class="rank-box" style="font-size: 1.6em;">🥈</div>';
+                else if (index === 2) rankVisual = '<div class="rank-box" style="font-size: 1.6em;">🥉</div>';
+                else rankVisual = `<div class="rank-box">${index + 1}.</div>`;
                 
                 let diffTextHtml = '';
                 if (index > 0 && diffValue > 0) {
@@ -424,6 +546,7 @@
                                 <span class="status-dot status-${user.actStatus}"></span>
                                 ${user.name} 
                                 ${badges.join(' ')}
+                                ${showcaseHtml}
                             </div>
                             <div class="stat-main-val">${mainStatLabel} ${mainStatValue}</div>
                             <div class="stat-sub-val">${subStatText}</div>
@@ -468,7 +591,7 @@
             document.getElementById('pub-max-time').textContent = formatTimeLong(data.longestPlank || 0);
             document.getElementById('pub-workout-count').textContent = getWorkoutCount(data);
             
-            renderAchievements('pub-achievements-container', data);
+            renderAchievements('pub-achievements-container', data, false);
         }
 
         function closePublicProfile() {
@@ -499,6 +622,7 @@
             document.getElementById('avatar-display').textContent = data.avatar || '👤';
             document.getElementById('streak-display').textContent = streak > 0 ? `🔥 Série: ${streak} dní` : '';
             document.getElementById('level-display').textContent = getLevel(data.totalTime || 0);
+            document.getElementById('reminder-time').value = data.reminderTime || '';
 
             let restDays = data.restDays || [false,false,false,false,false,false,false];
             document.querySelectorAll('.day-box').forEach(box => {
@@ -506,7 +630,7 @@
                 box.classList.toggle('rest', restDays[d]);
             });
 
-            renderAchievements('my-achievements-container', data);
+            renderAchievements('my-achievements-container', data, true); // true = own profile (clickable)
 
             const historyList = document.getElementById('history-list');
             historyList.innerHTML = '';
@@ -547,7 +671,7 @@
             db.ref('users').push({ 
                 name: name, totalTime: 0, longestPlank: 0, streak: 0, lastDate: null, avatar: '👤',
                 restDays: [false,false,false,false,false,false,false],
-                achievements: {} 
+                achievements: {}, showcase: []
             }).then(() => document.getElementById('new-user-name').value = '')
               .catch(err => alert("Chyba: " + err.message));
         }
@@ -616,7 +740,6 @@
             
             let updates = { totalTime: newTotal, longestPlank: newLongest };
             
-            // --- LOGIKA PRO STYL A TAJNÉ VÝZVY ---
             let achUpdates = data.achievements || {};
             let d = new Date();
             let month = d.getMonth(); 
@@ -624,10 +747,8 @@
             let day = d.getDay(); 
             let hour = d.getHours();
 
-            // Osobák při streaku nad 30 (Druhý dech)
             if (isPersonalRecord && currentStreak >= 30) achUpdates['ach_second_wind'] = true;
             
-            // Víkendový válečník (Pokud je víkend, ověříme odcvičení druhého dne v historii)
             if (day === 0 || day === 6) {
                 let historyArr = Object.values(data.history || {});
                 historyArr.push({timestamp: Date.now()}); 
@@ -637,7 +758,6 @@
                 if (hasSat && hasSun) achUpdates['ach_weekend'] = true;
             }
 
-            // Časy a svátky
             if (hour >= 6 && hour < 8) achUpdates['time_morning'] = true;
             if (hour >= 20 || hour === 23) achUpdates['time_night'] = true;
             if (month === 11 && date === 24) achUpdates['ach_xmas'] = true; 
@@ -648,13 +768,11 @@
             if (month === 1 && date === 29) achUpdates['ach_leap'] = true; 
             if (day === 5 && date === 13) achUpdates['ach_fri13'] = true; 
             
-            // Přesné stopky
             if (secondsElapsed === 201) achUpdates['ach_321'] = true; 
             if (secondsElapsed === 244) achUpdates['ach_404'] = true; 
             if (secondsElapsed === 194) achUpdates['ach_pi'] = true;  
 
             updates.achievements = achUpdates;
-            // ------------------------------
 
             let todayStr = new Date().toLocaleDateString('en-CA');
             if (data.lastDate !== todayStr) {
