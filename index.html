@@ -66,7 +66,7 @@
     <div class="container">
         <h1 id="app-title">Plank Tracker ⏱️</h1>
 
-        <!-- 1. HLAVNÍ OBRAZOVKA (Čistý výběr uživatele) -->
+        <!-- 1. HLAVNÍ OBRAZOVKA -->
         <div id="setup-section">
             <select id="user-select">
                 <option value="">-- Kdo jde cvičit? --</option>
@@ -103,7 +103,6 @@
 
         <!-- 2. TVŮJ PROFIL -->
         <div id="profile-section" style="display:none;">
-            <!-- Tlačítko Zpět úplně nahoře -->
             <div style="text-align: left; margin-bottom: 10px;">
                 <button class="text-btn" onclick="logout()" style="margin: 0; padding: 5px 0; font-size: 16px;">🔙 Zpět na výběr jména</button>
             </div>
@@ -118,7 +117,6 @@
             <div id="level-display" class="level-badge"></div>
             <button onclick="goToWorkout()" style="font-size: 18px; padding: 15px; margin-bottom: 15px;">JÍT CVIČIT 💪</button>
 
-            <!-- Dny odpočinku -->
             <div style="font-size: 12px; color: #888; text-align: left; margin-top: 15px;">💤 Dny odpočinku (Kliknutím zmodrá):</div>
             <div class="days-container" id="rest-days-container">
                 <div class="day-box" data-day="0">Po</div>
@@ -152,7 +150,6 @@
 
         <!-- 4. VEŘEJNÝ PROFIL -->
         <div id="public-profile-section" style="display:none;">
-            <!-- Tlačítko Zpět úplně nahoře -->
             <div style="text-align: left; margin-bottom: 10px;">
                 <button class="text-btn" onclick="closePublicProfile()" style="margin: 0; padding: 5px 0; font-size: 16px;">🔙 Zpět na Síň slávy</button>
             </div>
@@ -312,14 +309,15 @@
             }
         }
 
+        // Úprava: Přidána pevná mezera (\u00A0) mezi minuty a vteřiny
         function formatTime(sec) {
             const m = Math.floor(sec / 60).toString().padStart(2, '0'); const s = (sec % 60).toString().padStart(2, '0');
             return `${m}:${s}`;
         }
         function formatTimeLong(sec) {
             const h = Math.floor(sec / 3600); const m = Math.floor((sec % 3600) / 60); const s = sec % 60;
-            if (h > 0) return `${h}h ${m}m`;
-            return m === 0 ? `${s}s` : `${m}m ${s}s`;
+            if (h > 0) return `${h}h\u00A0${m}m`;
+            return m === 0 ? `${s}s` : `${m}m\u00A0${s}s`;
         }
         
         function getLevel(sec) {
@@ -422,6 +420,7 @@
             updateLeaderboard();
         }
 
+        // Úprava: Přidány pevné mezery (&nbsp;) k propojení čísel a textů, aby se nezalamovaly
         function updateLeaderboard() {
             let usersArray = Object.keys(allUsersData).map(key => {
                 let u = allUsersData[key];
@@ -459,19 +458,19 @@
                 
                 if (currentSort === 'total') {
                     mainStatLabel = 'Celkem:'; mainStatValue = formatTimeLong(user.totalTime || 0);
-                    subStatText = `Max: ${formatTimeLong(user.longestPlank || 0)} | Úspěchy: ${user.achCount}/${totalPossibleAch}`;
+                    subStatText = `Max:&nbsp;${formatTimeLong(user.longestPlank || 0)} | Úspěchy:&nbsp;${user.achCount}/${totalPossibleAch}`;
                     diffValue = index > 0 ? (usersArray[index-1].totalTime || 0) - (user.totalTime || 0) : 0;
                 } else if (currentSort === 'month') {
                     mainStatLabel = 'Tento měsíc:'; mainStatValue = formatTimeLong(user.thisMonthTime);
-                    subStatText = `Celkově: ${formatTimeLong(user.totalTime || 0)} | Úspěchy: ${user.achCount}`;
+                    subStatText = `Celkově:&nbsp;${formatTimeLong(user.totalTime || 0)} | Úspěchy:&nbsp;${user.achCount}`;
                     diffValue = index > 0 ? usersArray[index-1].thisMonthTime - user.thisMonthTime : 0;
                 } else if (currentSort === 'max') {
                     mainStatLabel = 'Max výdrž:'; mainStatValue = formatTimeLong(user.longestPlank || 0);
-                    subStatText = `Série: ${user.displayStreak} | Úspěchy: ${user.achCount}/${totalPossibleAch}`;
+                    subStatText = `Série:&nbsp;${user.displayStreak} | Úspěchy:&nbsp;${user.achCount}/${totalPossibleAch}`;
                     diffValue = index > 0 ? (usersArray[index-1].longestPlank || 0) - (user.longestPlank || 0) : 0;
                 } else if (currentSort === 'streak') {
                     mainStatLabel = 'Série:'; mainStatValue = `${user.displayStreak} dní`;
-                    subStatText = `Celkem: ${formatTimeLong(user.totalTime || 0)} | Úspěchy: ${user.achCount}`;
+                    subStatText = `Celkem:&nbsp;${formatTimeLong(user.totalTime || 0)} | Úspěchy:&nbsp;${user.achCount}`;
                     diffValue = index > 0 ? usersArray[index-1].displayStreak - user.displayStreak : 0;
                 }
 
@@ -493,8 +492,8 @@
                 
                 let diffTextHtml = '';
                 if (index > 0 && diffValue > 0) {
-                    let diffFormat = currentSort === 'streak' ? `${diffValue} dní` : formatTimeLong(diffValue);
-                    diffTextHtml = `<div class="diff-text">Chybí ${diffFormat} na ${usersArray[index-1].name} ⬆️</div>`;
+                    let diffFormat = currentSort === 'streak' ? `${diffValue}&nbsp;dní` : formatTimeLong(diffValue);
+                    diffTextHtml = `<div class="diff-text">Chybí ${diffFormat} na ${usersArray[index-1].name}&nbsp;⬆️</div>`;
                 }
 
                 statsHtml += `
@@ -508,7 +507,7 @@
                                 ${badges.join(' ')}
                                 ${showcaseHtml}
                             </div>
-                            <div class="stat-main-val">${mainStatLabel} ${mainStatValue}</div>
+                            <div class="stat-main-val">${mainStatLabel}&nbsp;${mainStatValue}</div>
                             <div class="stat-sub-val">${subStatText}</div>
                             ${diffTextHtml}
                         </div>
