@@ -14,6 +14,7 @@
         button:active { opacity: 0.8; transform: scale(0.98); }
         button.stop { background: #f44336; height: 80px; font-size: 20px; }
         .text-btn { background: transparent; margin-top: 10px; padding: 8px; font-size: 14px; color: #888; border: none; cursor: pointer;}
+        .back-btn { color: #4db8ff; font-weight: bold; font-size: 16px; padding: 5px 0; margin: 0; display: inline-block; }
         
         .timer { font-size: 70px; font-weight: bold; margin: 20px 0; font-variant-numeric: tabular-nums; }
         .countdown { color: #ffeb3b; font-size: 30px; min-height: 40px; margin-top: 10px; }
@@ -104,7 +105,7 @@
         <!-- 2. TVŮJ PROFIL -->
         <div id="profile-section" style="display:none;">
             <div style="text-align: left; margin-bottom: 10px;">
-                <button class="text-btn" onclick="logout()" style="margin: 0; padding: 5px 0; font-size: 16px;">🔙 Zpět na výběr jména</button>
+                <button class="text-btn back-btn" onclick="logout()">🔙 Zpět na výběr jména</button>
             </div>
 
             <div class="profile-header">
@@ -151,7 +152,7 @@
         <!-- 4. VEŘEJNÝ PROFIL -->
         <div id="public-profile-section" style="display:none;">
             <div style="text-align: left; margin-bottom: 10px;">
-                <button class="text-btn" onclick="closePublicProfile()" style="margin: 0; padding: 5px 0; font-size: 16px;">🔙 Zpět na Síň slávy</button>
+                <button class="text-btn back-btn" onclick="closePublicProfile()">🔙 Zpět na Síň slávy</button>
             </div>
 
             <div class="profile-header">
@@ -171,6 +172,9 @@
             </div>
             <div style="text-align: left; font-weight: bold; color: #ffeb3b; margin-top: 15px;">🏅 Vitrína hráče</div>
             <div id="pub-achievements-container" style="background: #222; padding: 10px; border-radius: 8px; margin-top: 5px; max-height: 300px; overflow-y: auto;"></div>
+
+            <div style="font-size: 12px; color: #888; text-align: left; margin-top: 15px;">🕒 Historie tréninků:</div>
+            <div class="history-list" id="pub-history-list"></div>
         </div>
 
     </div>
@@ -309,7 +313,6 @@
             }
         }
 
-        // Úprava: Přidána pevná mezera (\u00A0) mezi minuty a vteřiny
         function formatTime(sec) {
             const m = Math.floor(sec / 60).toString().padStart(2, '0'); const s = (sec % 60).toString().padStart(2, '0');
             return `${m}:${s}`;
@@ -420,7 +423,6 @@
             updateLeaderboard();
         }
 
-        // Úprava: Přidány pevné mezery (&nbsp;) k propojení čísel a textů, aby se nezalamovaly
         function updateLeaderboard() {
             let usersArray = Object.keys(allUsersData).map(key => {
                 let u = allUsersData[key];
@@ -551,6 +553,21 @@
             document.getElementById('pub-workout-count').textContent = getWorkoutCount(data);
             
             renderAchievements('pub-achievements-container', data, false);
+
+            const pubHistoryList = document.getElementById('pub-history-list');
+            pubHistoryList.innerHTML = '';
+            if (data.history) {
+                let logs = Object.keys(data.history).map(k => ({ id: k, ...data.history[k] })).reverse();
+                logs.forEach(log => {
+                    let d = new Date(log.timestamp).toLocaleString('cs-CZ', {day:'numeric', month:'numeric', hour:'2-digit', minute:'2-digit'});
+                    pubHistoryList.innerHTML += `
+                        <div class="history-item">
+                            <span>🕒 ${d} - <strong>${formatTimeLong(log.duration)}</strong></span>
+                        </div>`;
+                });
+            } else {
+                pubHistoryList.innerHTML = '<div style="color:#666;">Zatím žádné tréninky.</div>';
+            }
         }
 
         function closePublicProfile() {
