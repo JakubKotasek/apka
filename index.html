@@ -12,6 +12,7 @@
         select, input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: none; font-size: 16px; box-sizing: border-box; }
         button { background: #4caf50; color: white; cursor: pointer; font-weight: bold; transition: 0.2s; }
         button:active { opacity: 0.8; transform: scale(0.98); }
+        button:disabled { background: #555; color: #888; cursor: not-allowed; }
         button.stop { background: #f44336; height: 80px; font-size: 20px; }
         .text-btn { background: transparent; margin-top: 10px; padding: 8px; font-size: 14px; color: #888; border: none; cursor: pointer;}
         .back-btn { color: #4db8ff; font-weight: bold; font-size: 16px; padding: 5px 0; margin: 0; display: inline-block; }
@@ -26,15 +27,16 @@
         .tab-btn.active { background: #4caf50; color: white; }
         
         .stat-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #444; display: flex; align-items: flex-start; justify-content: space-between; border-radius: 8px; transition: 0.3s; padding: 10px;}
-        .stat-item:last-child { margin-bottom: 0; }
+        .stat-item:last-child { margin-bottom: 0; border-bottom: none; }
         .rank-box { width: 35px; text-align: center; font-size: 1.4em; font-weight: bold; color: #888; margin-right: 10px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; margin-top: 5px;}
         
         .player-info { flex-grow: 1; display: flex; flex-direction: column; text-align: left; }
-        .player-name-row { font-weight: bold; font-size: 1.1em; margin-bottom: 5px; display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
+        .player-name-row { font-weight: bold; font-size: 1.1em; margin-bottom: 2px; display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
         .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
         .status-today { background: #4caf50; box-shadow: 0 0 5px #4caf50; }
         .status-yesterday { background: #ffeb3b; }
         .status-sleep { background: #f44336; }
+        .player-title { font-size: 0.85em; color: #4db8ff; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;}
         
         .stat-main-val { font-size: 1.2em; font-weight: bold; color: white; }
         .stat-sub-val { font-size: 0.85em; color: #aaa; margin-top: 2px; }
@@ -45,7 +47,7 @@
         .profile-header { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px; }
         .avatar-btn { background: #333; font-size: 40px; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0; padding: 0; border: 2px solid #4caf50; flex-shrink: 0; position: relative;}
         .sleep-badge { position: absolute; bottom: -5px; right: -5px; font-size: 20px; }
-        .level-badge { background: #ffeb3b; color: #000; padding: 5px 10px; border-radius: 15px; font-size: 14px; font-weight: bold; margin-bottom: 15px; display: inline-block; }
+        .level-badge { background: #ffeb3b; color: #000; padding: 5px 10px; border-radius: 15px; font-size: 14px; font-weight: bold; margin-bottom: 5px; display: inline-block; }
         
         .achievements-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin: 15px 0; }
         .ach-box { background: #333; border-radius: 8px; padding: 8px 5px; text-align: center; font-size: 24px; opacity: 0.3; filter: grayscale(100%); transition: 0.3s; position: relative; }
@@ -89,6 +91,10 @@
         .aura-547 { box-shadow: 0 0 30px #1b5e20; border: 2px solid #4caf50; }
         .aura-638 { box-shadow: 0 0 30px #0d47a1; border: 2px solid #2196f3; }
         .aura-730 { animation: pulse-galaxy 3s infinite linear; border: 2px solid #fff; }
+
+        .shop-item { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 10px; margin-bottom: 5px; border-radius: 5px; }
+        .shop-item-name { font-weight: bold; font-size: 14px; text-align: left; }
+        .shop-btn { width: auto; margin: 0; padding: 5px 10px; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -103,7 +109,7 @@
             
             <div style="display: flex; justify-content: center; gap: 10px; margin-top: 15px;">
                 <button class="text-btn" onclick="toggleNewUserForm()" style="font-size: 12px; border: 1px solid #444; border-radius: 5px;">⚙️ Správa a nový profil</button>
-                <button class="text-btn" onclick="openEncyclopedia()" style="font-size: 12px; border: 1px solid #444; border-radius: 5px; color: #ffeb3b;">📖 Encyklopedie odměn</button>
+                <button class="text-btn" onclick="openEncyclopedia()" style="font-size: 12px; border: 1px solid #444; border-radius: 5px; color: #ffeb3b;">📖 Encyklopedie & Obchod</button>
             </div>
             
             <div id="new-user-form" style="display: none; background: #2a2a2a; padding: 10px; border-radius: 8px; margin-top: 10px;">
@@ -133,13 +139,27 @@
             </div>
         </div>
 
-        <!-- ENCYKLOPEDIE (Preview) -->
+        <!-- ENCYKLOPEDIE A OBCHOD -->
         <div id="encyclopedia-section" style="display:none;">
             <div style="text-align: left; margin-bottom: 10px;">
-                <button class="text-btn back-btn" onclick="hideAll(); document.getElementById('setup-section').style.display='block';">🔙 Zpět na úvod</button>
+                <button class="text-btn back-btn" onclick="closeEncyclopedia()">🔙 Zpět</button>
             </div>
-            <h2 style="color: #ffeb3b;">📖 Co mohu získat?</h2>
+            <h2 style="color: #ffeb3b; margin-top: 0;">📖 Encyklopedie & Obchod</h2>
             
+            <!-- OBCHOD -->
+            <div class="stats" style="background: #3a2e12; border: 1px solid #ff9800;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #554011; padding-bottom: 10px; margin-bottom: 10px;">
+                    <h3 style="margin:0; color: #ffc107;">🛒 Obchod</h3>
+                    <div id="shop-coin-balance" style="font-size: 18px; font-weight: bold; color: white;">Přihlas se pro nákup</div>
+                </div>
+                <p style="font-size: 12px; color: #ddd; text-align: left; margin-top: 0;">Za každou minutu tvého celkového času (i z minulosti) získáváš 1 Stříbrňák (🪙). Pořiď si za ně výhody a tituly k profilu!</p>
+                
+                <div id="shop-items-container" style="max-height: 350px; overflow-y: auto;">
+                    <!-- Shop items generated here -->
+                </div>
+            </div>
+
+            <!-- INFO -->
             <div class="stats">
                 <h3 style="margin-top:0;">🧬 Evoluce Avatara (Celkový čas)</h3>
                 <div style="text-align: left; font-size: 14px; line-height: 1.8;">
@@ -182,19 +202,26 @@
 
         <!-- 2. TVŮJ PROFIL -->
         <div id="profile-section" style="display:none;">
-            <div style="text-align: left; margin-bottom: 10px;">
-                <button class="text-btn back-btn" onclick="logout()">🔙 Zpět na výběr jména</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <button class="text-btn back-btn" onclick="logout()">🔙 Odhlásit</button>
+                <button class="text-btn" onclick="openEncyclopedia()" style="font-size: 12px; border: 1px solid #ff9800; border-radius: 5px; color: #ffeb3b; padding: 5px 10px; margin:0;">🛒 Koupit Tituly</button>
             </div>
 
             <div class="profile-header">
                 <div class="avatar-btn" id="avatar-display"></div>
                 <div style="text-align: left;">
                     <h2 id="profile-name" style="margin: 0; color: #4caf50;"></h2>
-                    <span id="streak-display" style="color: #ff9800; font-weight: bold; font-size: 14px;"></span><br>
-                    <span id="freeze-display" style="color: #00bcd4; font-size: 12px;"></span>
+                    <div id="profile-active-title" class="player-title"></div>
+                    <span id="streak-display" style="color: #ff9800; font-weight: bold; font-size: 14px;"></span>
                 </div>
             </div>
-            <div id="level-display" class="level-badge"></div>
+            
+            <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 15px;">
+                <div id="level-display" class="level-badge" style="margin: 0;"></div>
+                <div id="coin-display" class="level-badge" style="margin: 0; background: #ddd; color: #000;">🪙 0</div>
+            </div>
+            <div id="freeze-display" style="color: #00bcd4; font-size: 12px; margin-bottom: 15px;"></div>
+
             <button onclick="goToWorkout()" style="font-size: 18px; padding: 15px; margin-bottom: 15px;">JÍT CVIČIT 💪</button>
 
             <!-- Dny odpočinku -->
@@ -239,6 +266,7 @@
                 <div class="avatar-btn" id="pub-avatar-display" style="border-color: #888; cursor: default;"></div>
                 <div style="text-align: left;">
                     <h2 id="pub-profile-name" style="margin: 0; color: #fff;"></h2>
+                    <div id="pub-profile-title" class="player-title"></div>
                     <span id="pub-streak-display" style="color: #ff9800; font-weight: bold; font-size: 14px;"></span>
                 </div>
             </div>
@@ -287,11 +315,45 @@
         let secondsElapsed = 0;
         let isPlanking = false;
 
+        const TITLES_SHOP = [
+            { id: 't1', name: 'Zkoušeč gravitace', price: 20 },
+            { id: 't2', name: 'Leštič podlahy', price: 35 },
+            { id: 't3', name: 'Odhodlané prkno', price: 50 },
+            { id: 't4', name: 'Krotitel stopek', price: 75 },
+            { id: 't5', name: 'Přítel bolesti', price: 100 },
+            { id: 't6', name: 'Železné břicho', price: 150 },
+            { id: 't7', name: 'Milovník koberce', price: 200 },
+            { id: 't8', name: 'Zpomalovač času', price: 300 },
+            { id: 't9', name: 'Ocelové jádro', price: 500 },
+            { id: 't10', name: 'Gravitační anomálie', price: 750 },
+            { id: 't11', name: 'Stroj bez emocí', price: 1000 },
+            { id: 't12', name: 'Zničitel podlahy', price: 1250 },
+            { id: 't13', name: 'Titán Síně slávy', price: 2000 },
+            { id: 't14', name: 'Nezastavitelná síla', price: 2500 },
+            { id: 't15', name: 'Pán gravitace', price: 3000 },
+            { id: 't16', name: 'Otec prken', price: 5000 },
+            { id: 't17', name: 'Matka prken', price: 5000 },
+            { id: 't18', name: 'Nesmrtelný', price: 7500 },
+            { id: 't19', name: 'BŮH ČASU A BOLESTI', price: 10000 }
+        ];
+
+        function getTitleName(titleId) {
+            let t = TITLES_SHOP.find(x => x.id === titleId);
+            return t ? t.name : "";
+        }
+
         function getWorkoutCount(userData) { return userData.history ? Object.keys(userData.history).length : 0; }
         
         function getSeasonWorkoutCount(userData, monthsArr) {
             if (!userData.history) return 0;
             return Object.values(userData.history).filter(log => monthsArr.includes(new Date(log.timestamp).getMonth())).length;
+        }
+
+        function getUserCoins(userData) {
+            if (!userData) return 0;
+            let earned = Math.floor((userData.totalTime || 0) / 60);
+            let spent = userData.spentCoins || 0;
+            return Math.max(0, earned - spent);
         }
 
         // --- EVOLUCE A MRAZÁKY ---
@@ -320,8 +382,9 @@
         function calculateCurrentStreak(userData) {
             let streak = userData.streak || 0;
             let freezesEarned = Math.floor(getWorkoutCount(userData) / 10);
+            let boughtFreezes = userData.extraFreezes || 0;
             let freezesUsed = userData.freezesUsed || 0;
-            let freezesLeft = Math.max(0, freezesEarned - freezesUsed);
+            let freezesLeft = Math.max(0, (freezesEarned + boughtFreezes) - freezesUsed);
             
             if (!userData.lastDate || streak === 0) return { streak: 0, freezesLeft, frozeYesterday: false };
             
@@ -342,7 +405,6 @@
 
             if (missedActiveDays > 0) {
                 if (freezesLeft >= missedActiveDays) {
-                    // Mrazáky tě zachrání vizuálně
                     return { streak, freezesLeft: freezesLeft - missedActiveDays, frozeYesterday: true };
                 } else {
                     return { streak: 0, freezesLeft, frozeYesterday: false };
@@ -573,9 +635,105 @@
             }
         }
 
+        function renderShop() {
+            let shopBal = document.getElementById('shop-coin-balance');
+            let shopCont = document.getElementById('shop-items-container');
+            shopCont.innerHTML = '';
+            
+            if (!currentUser) {
+                shopBal.textContent = "Přihlas se pro nákup";
+                shopCont.innerHTML = '<div style="color:#aaa; text-align:center;">Vyber si na hlavní stránce své jméno, ať víme, kolik máš Stříbrňáků!</div>';
+                return;
+            }
+            
+            let data = allUsersData[currentUser];
+            let coins = getUserCoins(data);
+            let unlocked = data.unlockedTitles || [];
+            
+            shopBal.textContent = `🪙 ${coins}`;
+            
+            // Mrazák item
+            let canBuyFreeze = coins >= 150;
+            shopCont.innerHTML += `
+                <div class="shop-item">
+                    <div class="shop-item-name">🧊 Mrazák (Zachrání sérii)</div>
+                    <button class="shop-btn" ${canBuyFreeze ? `onclick="buyItem('freeze', 'freeze', 150)"` : 'disabled'}>
+                        Koupit (150 🪙)
+                    </button>
+                </div>
+            `;
+            
+            // Tituly
+            TITLES_SHOP.forEach(t => {
+                let isOwned = unlocked.includes(t.id);
+                let isActive = data.activeTitle === t.id;
+                let canBuy = coins >= t.price;
+                
+                let btnHtml = '';
+                if (isActive) {
+                    btnHtml = `<button class="shop-btn" style="background:#888;" disabled>Aktivní</button>`;
+                } else if (isOwned) {
+                    btnHtml = `<button class="shop-btn" style="background:#2196f3;" onclick="equipTitle('${t.id}')">Vybavit</button>`;
+                } else {
+                    btnHtml = `<button class="shop-btn" ${canBuy ? `onclick="buyItem('title', '${t.id}', ${t.price})"` : 'disabled'}>Koupit (${t.price} 🪙)</button>`;
+                }
+                
+                shopCont.innerHTML += `
+                    <div class="shop-item">
+                        <div class="shop-item-name" style="color: ${isOwned ? '#4caf50' : '#fff'}">« ${t.name} »</div>
+                        ${btnHtml}
+                    </div>
+                `;
+            });
+        }
+
+        function buyItem(type, itemId, price) {
+            if (!currentUser) return;
+            let data = allUsersData[currentUser];
+            let coins = getUserCoins(data);
+            
+            if (coins < price) return alert("Nemáš dostatek Stříbrňáků!");
+            if (!confirm(`Opravdu utratit ${price} 🪙?`)) return;
+            
+            let updates = {};
+            updates.spentCoins = (data.spentCoins || 0) + price;
+            
+            if (type === 'freeze') {
+                updates.extraFreezes = (data.extraFreezes || 0) + 1;
+            } else if (type === 'title') {
+                let unlocked = data.unlockedTitles || [];
+                unlocked.push(itemId);
+                updates.unlockedTitles = unlocked;
+                updates.activeTitle = itemId; // Automatické vybavení po koupi
+            }
+            
+            db.ref(`users/${currentUser}`).update(updates).then(() => {
+                renderShop();
+                if(type === 'title') updateProfileUI();
+            });
+        }
+
+        function equipTitle(itemId) {
+            if (!currentUser) return;
+            db.ref(`users/${currentUser}`).update({ activeTitle: itemId }).then(() => {
+                renderShop();
+                updateProfileUI();
+            });
+        }
+
         function openEncyclopedia() {
             hideAll();
             document.getElementById('encyclopedia-section').style.display = 'block';
+            renderShop();
+        }
+
+        function closeEncyclopedia() {
+            hideAll();
+            if (currentUser) {
+                document.getElementById('profile-section').style.display = 'block';
+            } else {
+                document.getElementById('setup-section').style.display = 'block';
+            }
         }
 
         db.ref('users').on('value', (snapshot) => {
@@ -592,7 +750,12 @@
             });
             if(selectedVal && allUsersData[selectedVal]) userSelect.value = selectedVal;
             
-            if (currentUser && allUsersData[currentUser]) updateProfileUI();
+            if (currentUser && allUsersData[currentUser]) {
+                updateProfileUI();
+                if(document.getElementById('encyclopedia-section').style.display === 'block') {
+                    renderShop();
+                }
+            }
         });
 
         function changeLeaderboard(sortType, btnElement) {
@@ -679,6 +842,7 @@
                 }
                 
                 let auraClass = getAuraClass(user.displayStreak);
+                let titleHtml = user.activeTitle ? `<div class="player-title">« ${getTitleName(user.activeTitle)} »</div>` : '';
 
                 statsHtml += `
                     <div class="stat-item ${auraClass}">
@@ -691,6 +855,7 @@
                                 ${badges.join(' ')}
                                 ${showcaseHtml}
                             </div>
+                            ${titleHtml}
                             <div class="stat-main-val">${mainStatLabel}&nbsp;${mainStatValue}</div>
                             <div class="stat-sub-val">${subStatText}</div>
                             ${diffTextHtml}
@@ -729,6 +894,7 @@
             let avatarData = getAvatarAndStatus(data);
             
             document.getElementById('pub-profile-name').textContent = data.name;
+            document.getElementById('pub-profile-title').textContent = data.activeTitle ? `« ${getTitleName(data.activeTitle)} »` : '';
             document.getElementById('pub-avatar-display').innerHTML = avatarData.html;
             document.getElementById('pub-streak-display').textContent = streakData.streak > 0 ? `🔥 Série: ${streakData.streak} dní` : '';
             document.getElementById('pub-level-display').textContent = getLevel(data.totalTime || 0);
@@ -782,11 +948,14 @@
             let avatarData = getAvatarAndStatus(data);
             
             document.getElementById('profile-name').textContent = data.name;
+            document.getElementById('profile-active-title').textContent = data.activeTitle ? `« ${getTitleName(data.activeTitle)} »` : '';
             document.getElementById('avatar-display').innerHTML = avatarData.html;
             
             document.getElementById('streak-display').textContent = streakData.streak > 0 ? `🔥 Série: ${streakData.streak} dní` : '';
-            document.getElementById('freeze-display').textContent = `🧊 Mrazáky: ${streakData.freezesLeft}`;
+            document.getElementById('freeze-display').textContent = `🧊 Mrazáky pro záchranu: ${streakData.freezesLeft}`;
             document.getElementById('level-display').textContent = getLevel(data.totalTime || 0);
+            
+            document.getElementById('coin-display').textContent = `🪙 ${getUserCoins(data)}`;
 
             let restDays = data.restDays || [false,false,false,false,false,false,false];
             document.querySelectorAll('.day-box').forEach(box => {
@@ -834,9 +1003,9 @@
             
             db.ref('users').push({ 
                 name: name,
-                totalTime: 0, longestPlank: 0, streak: 0, lastDate: null, freezesUsed: 0,
+                totalTime: 0, longestPlank: 0, streak: 0, lastDate: null, freezesUsed: 0, spentCoins: 0,
                 restDays: [false,false,false,false,false,false,false],
-                achievements: {}, showcase: []
+                achievements: {}, showcase: [], unlockedTitles: [], activeTitle: ""
             }).then(() => {
                 document.getElementById('new-user-name').value = '';
                 document.getElementById('new-user-form').style.display = 'none';
@@ -973,7 +1142,7 @@
             db.ref(`users/${currentUser}`).update(updates).then(() => {
                 setTimeout(() => {
                     let msg = isPersonalRecord ? "NOVÝ OSOBNÍ REKORD! 🎉\n\n" : "Skvělá práce!\n\n";
-                    alert(msg + `Čas: ${formatTimeLong(secondsElapsed)}`);
+                    alert(msg + `Čas: ${formatTimeLong(secondsElapsed)}\nZískáváš další Stříbrňáky do obchodu!`);
                     cancelWorkout();
                 }, 500);
             });
