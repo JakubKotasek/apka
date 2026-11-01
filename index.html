@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plank Tracker</title>
+    <title>Plank Tracker RPG</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: #fff; text-align: center; margin: 0; padding: 15px; }
@@ -25,8 +25,8 @@
         .tab-btn { flex: 1; background: #333; padding: 8px 5px; font-size: 12px; border-radius: 5px; margin: 0; white-space: nowrap; }
         .tab-btn.active { background: #4caf50; color: white; }
         
-        .stat-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #444; display: flex; align-items: flex-start; justify-content: space-between; }
-        .stat-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .stat-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #444; display: flex; align-items: flex-start; justify-content: space-between; border-radius: 8px; transition: 0.3s; padding: 10px;}
+        .stat-item:last-child { margin-bottom: 0; }
         .rank-box { width: 35px; text-align: center; font-size: 1.4em; font-weight: bold; color: #888; margin-right: 10px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; margin-top: 5px;}
         
         .player-info { flex-grow: 1; display: flex; flex-direction: column; text-align: left; }
@@ -43,7 +43,8 @@
         .view-profile-btn { background: #333; color: #fff; font-size: 12px; padding: 5px 10px; border-radius: 5px; width: auto; margin: 0; margin-top: 5px; height: fit-content;}
         
         .profile-header { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px; }
-        .avatar-btn { background: #333; font-size: 40px; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; margin: 0; padding: 0; border: 2px solid #4caf50; flex-shrink: 0; }
+        .avatar-btn { background: #333; font-size: 40px; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0; padding: 0; border: 2px solid #4caf50; flex-shrink: 0; position: relative;}
+        .sleep-badge { position: absolute; bottom: -5px; right: -5px; font-size: 20px; }
         .level-badge { background: #ffeb3b; color: #000; padding: 5px 10px; border-radius: 15px; font-size: 14px; font-weight: bold; margin-bottom: 15px; display: inline-block; }
         
         .achievements-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin: 15px 0; }
@@ -61,6 +62,33 @@
         .history-list { max-height: 150px; overflow-y: auto; background: #222; padding: 10px; border-radius: 8px; text-align: left; margin-bottom: 15px; }
         .history-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #444; font-size: 14px; }
         .del-btn { background: transparent; color: #f44336; padding: 2px 5px; margin: 0; width: auto; font-size: 12px; border: none; cursor: pointer;}
+
+        .heatmap { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; margin-top: 10px; }
+        .hm-box { width: 100%; aspect-ratio: 1; background: #444; border-radius: 3px; }
+        .hm-box.active { background: #4caf50; }
+        .hm-box.record { background: #ffeb3b; box-shadow: 0 0 5px #ffeb3b; }
+
+        /* Aury pro Síň slávy */
+        @keyframes pulse-fire { 0% { box-shadow: 0 0 5px #ff5722; } 50% { box-shadow: 0 0 15px #ff9800; } 100% { box-shadow: 0 0 5px #ff5722; } }
+        @keyframes pulse-plasma { 0% { box-shadow: 0 0 5px #00bcd4; } 50% { box-shadow: 0 0 20px #03a9f4; } 100% { box-shadow: 0 0 5px #00bcd4; } }
+        @keyframes pulse-galaxy { 0% { box-shadow: 0 0 15px #ff00ff; } 33% { box-shadow: 0 0 15px #00ffff; } 66% { box-shadow: 0 0 15px #ffff00; } 100% { box-shadow: 0 0 15px #ff00ff; } }
+        @keyframes pulse-dark { 0% { box-shadow: inset 0 0 10px #9c27b0, 0 0 5px #000; } 50% { box-shadow: inset 0 0 20px #673ab7, 0 0 15px #000; } 100% { box-shadow: inset 0 0 10px #9c27b0, 0 0 5px #000; } }
+
+        .aura-7 { border-left: 3px solid #ff9800; background: rgba(255, 152, 0, 0.05); }
+        .aura-15 { border-left: 4px solid #ff5722; background: rgba(255, 87, 34, 0.1); }
+        .aura-30 { animation: pulse-fire 2s infinite; border: 1px solid #ff5722; }
+        .aura-50 { animation: pulse-fire 1s infinite; border: 2px solid #ff9800; background: rgba(255, 152, 0, 0.15); }
+        .aura-75 { box-shadow: 0 0 15px #9c27b0; border: 1px solid #9c27b0; background: rgba(156, 39, 176, 0.1); }
+        .aura-100 { animation: pulse-plasma 2s infinite; border: 1px solid #00bcd4; background: rgba(0, 188, 212, 0.1); }
+        .aura-150 { box-shadow: 0 0 20px #4caf50; border: 1px solid #4caf50; }
+        .aura-200 { box-shadow: 0 0 20px #e91e63; border: 1px solid #e91e63; }
+        .aura-250 { box-shadow: 0 0 25px gold; border: 2px solid gold; background: rgba(255, 215, 0, 0.1); }
+        .aura-300 { animation: pulse-dark 3s infinite; border: 1px solid #673ab7; }
+        .aura-365 { box-shadow: 0 0 30px #fff; border: 2px solid #e0f7fa; background: rgba(255,255,255,0.1); }
+        .aura-456 { box-shadow: 0 0 30px #b71c1c; border: 2px solid #f44336; }
+        .aura-547 { box-shadow: 0 0 30px #1b5e20; border: 2px solid #4caf50; }
+        .aura-638 { box-shadow: 0 0 30px #0d47a1; border: 2px solid #2196f3; }
+        .aura-730 { animation: pulse-galaxy 3s infinite linear; border: 2px solid #fff; }
     </style>
 </head>
 <body>
@@ -73,7 +101,10 @@
                 <option value="">-- Kdo jde cvičit? --</option>
             </select>
             
-            <button class="text-btn" onclick="toggleNewUserForm()" style="margin-top: 15px; font-size: 12px;">⚙️ Správa a nový profil ⬇️</button>
+            <div style="display: flex; justify-content: center; gap: 10px; margin-top: 15px;">
+                <button class="text-btn" onclick="toggleNewUserForm()" style="font-size: 12px; border: 1px solid #444; border-radius: 5px;">⚙️ Správa a nový profil</button>
+                <button class="text-btn" onclick="openEncyclopedia()" style="font-size: 12px; border: 1px solid #444; border-radius: 5px; color: #ffeb3b;">📖 Encyklopedie odměn</button>
+            </div>
             
             <div id="new-user-form" style="display: none; background: #2a2a2a; padding: 10px; border-radius: 8px; margin-top: 10px;">
                 <input type="text" id="new-user-name" placeholder="Nové jméno (např. Barbora)" style="margin-top: 0;">
@@ -87,7 +118,7 @@
                     <h3 style="margin:0; color: #ffeb3b;">🏆 Síň slávy</h3>
                     <div style="font-size: 10px; color: #888;">
                         <span class="status-dot status-today" style="width:8px;height:8px;"></span> Dnes 
-                        <span class="status-dot status-yesterday" style="width:8px;height:8px;margin-left:5px;"></span> Včera
+                        <span class="status-dot status-sleep" style="width:8px;height:8px;margin-left:5px;"></span> Spí
                     </div>
                 </div>
                 
@@ -102,6 +133,53 @@
             </div>
         </div>
 
+        <!-- ENCYKLOPEDIE (Preview) -->
+        <div id="encyclopedia-section" style="display:none;">
+            <div style="text-align: left; margin-bottom: 10px;">
+                <button class="text-btn back-btn" onclick="hideAll(); document.getElementById('setup-section').style.display='block';">🔙 Zpět na úvod</button>
+            </div>
+            <h2 style="color: #ffeb3b;">📖 Co mohu získat?</h2>
+            
+            <div class="stats">
+                <h3 style="margin-top:0;">🧬 Evoluce Avatara (Celkový čas)</h3>
+                <div style="text-align: left; font-size: 14px; line-height: 1.8;">
+                    🥚 <strong>Zárodek</strong> (Začátečník)<br>
+                    🐛 <strong>Housenka</strong> (Nad 1 hodinu)<br>
+                    🐢 <strong>Želva</strong> (Nad 5 hodin)<br>
+                    🦎 <strong>Ještěrka</strong> (Nad 10 hodin)<br>
+                    🦖 <strong>T-Rex</strong> (Nad 20 hodin)<br>
+                    🐉 <strong>Drak</strong> (Nad 50 hodin)<br>
+                    👽 <strong>Kosmická entita</strong> (Nad 100 hodin)
+                </div>
+            </div>
+
+            <div class="stats">
+                <h3 style="margin-top:0;">🌟 Aury za Sérii v kuse</h3>
+                <div style="text-align: left; font-size: 14px; line-height: 1.8;">
+                    <span style="color:#ff9800;">7 dní:</span> Jiskra<br>
+                    <span style="color:#ff5722;">15 dní:</span> Zahoření<br>
+                    <span style="color:#f44336;">30 dní:</span> Oheň<br>
+                    <span style="color:#ffeb3b;">50 dní:</span> Vatra<br>
+                    <span style="color:#9c27b0;">75 dní:</span> Magický plamen<br>
+                    <span style="color:#00bcd4;">100 dní:</span> Plazma<br>
+                    <span style="color:#4caf50;">150 dní:</span> Zelený blesk<br>
+                    <span style="color:#e91e63;">200 dní:</span> Cyberpunk Neon<br>
+                    <span style="color:gold;">250 dní:</span> Zlatá aura<br>
+                    <span style="color:#673ab7;">300 dní:</span> Temná hmota<br>
+                    <span style="color:#fff;">365 dní:</span> Diamant (1 Rok)<br>
+                    <span style="color:#f44336;">456 dní:</span> Rubín (1.25 Roku)<br>
+                    <span style="color:#4caf50;">547 dní:</span> Smaragd (1.5 Roku)<br>
+                    <span style="color:#2196f3;">638 dní:</span> Safír (1.75 Roku)<br>
+                    <span style="background: linear-gradient(90deg, #ff00ff, #00ffff); -webkit-background-clip: text; color: transparent;">730 dní:</span> Galaxie (2 Roky)
+                </div>
+            </div>
+            
+            <div class="stats">
+                <h3 style="margin-top:0;">🧊 Mrazáky (Ochrana série)</h3>
+                <p style="font-size: 14px; color: #ccc;">Za každých odcvičených 10 dní v historii získáš automaticky 1 Mrazák. Pokud zapomeneš jeden den cvičit, systém automaticky spotřebuje Mrazák a tvou sérii ti nesmaže!</p>
+            </div>
+        </div>
+
         <!-- 2. TVŮJ PROFIL -->
         <div id="profile-section" style="display:none;">
             <div style="text-align: left; margin-bottom: 10px;">
@@ -109,15 +187,17 @@
             </div>
 
             <div class="profile-header">
-                <button class="avatar-btn" id="avatar-display" onclick="changeAvatar()"></button>
+                <div class="avatar-btn" id="avatar-display"></div>
                 <div style="text-align: left;">
                     <h2 id="profile-name" style="margin: 0; color: #4caf50;"></h2>
-                    <span id="streak-display" style="color: #ff9800; font-weight: bold; font-size: 14px;"></span>
+                    <span id="streak-display" style="color: #ff9800; font-weight: bold; font-size: 14px;"></span><br>
+                    <span id="freeze-display" style="color: #00bcd4; font-size: 12px;"></span>
                 </div>
             </div>
             <div id="level-display" class="level-badge"></div>
             <button onclick="goToWorkout()" style="font-size: 18px; padding: 15px; margin-bottom: 15px;">JÍT CVIČIT 💪</button>
 
+            <!-- Dny odpočinku -->
             <div style="font-size: 12px; color: #888; text-align: left; margin-top: 15px;">💤 Dny odpočinku (Kliknutím zmodrá):</div>
             <div class="days-container" id="rest-days-container">
                 <div class="day-box" data-day="0">Po</div>
@@ -170,6 +250,10 @@
                     <div><div style="font-size:12px; color:#aaa;">Tréninků</div><strong id="pub-workout-count"></strong></div>
                 </div>
             </div>
+            
+            <div style="font-size: 12px; color: #888; text-align: left; margin-top: 15px;">🟩 Aktivita (Posledních 30 dní):</div>
+            <div class="heatmap" id="pub-heatmap"></div>
+
             <div style="text-align: left; font-weight: bold; color: #ffeb3b; margin-top: 15px;">🏅 Vitrína hráče</div>
             <div id="pub-achievements-container" style="background: #222; padding: 10px; border-radius: 8px; margin-top: 5px; max-height: 300px; overflow-y: auto;"></div>
 
@@ -202,13 +286,88 @@
         let timerInterval, countdownInterval;
         let secondsElapsed = 0;
         let isPlanking = false;
-        const avatars = ['👤', '🦁', '🥷', '🧘‍♀️', '🦾', '🔥', '👽', '😎', '🦄', '🦖', '🍕'];
 
         function getWorkoutCount(userData) { return userData.history ? Object.keys(userData.history).length : 0; }
         
         function getSeasonWorkoutCount(userData, monthsArr) {
             if (!userData.history) return 0;
             return Object.values(userData.history).filter(log => monthsArr.includes(new Date(log.timestamp).getMonth())).length;
+        }
+
+        // --- EVOLUCE A MRAZÁKY ---
+        function getAvatarAndStatus(userData) {
+            let t = userData.totalTime || 0;
+            let avatar = '🥚';
+            if (t >= 360000) avatar = '👽';
+            else if (t >= 180000) avatar = '🐉';
+            else if (t >= 72000) avatar = '🦖';
+            else if (t >= 36000) avatar = '🦎';
+            else if (t >= 18000) avatar = '🐢';
+            else if (t >= 3600) avatar = '🐛';
+
+            let streakData = calculateCurrentStreak(userData);
+            let badge = '';
+            
+            if (streakData.streak === 0 && getWorkoutCount(userData) > 0) {
+                badge = '<span class="sleep-badge">💤</span>';
+            } else if (streakData.frozeYesterday) {
+                badge = '<span class="sleep-badge">💧</span>';
+            }
+
+            return { char: avatar, html: avatar + badge, freezesLeft: streakData.freezesLeft };
+        }
+
+        function calculateCurrentStreak(userData) {
+            let streak = userData.streak || 0;
+            let freezesEarned = Math.floor(getWorkoutCount(userData) / 10);
+            let freezesUsed = userData.freezesUsed || 0;
+            let freezesLeft = Math.max(0, freezesEarned - freezesUsed);
+            
+            if (!userData.lastDate || streak === 0) return { streak: 0, freezesLeft, frozeYesterday: false };
+            
+            let today = new Date(); today.setHours(0,0,0,0);
+            let lastDate = new Date(userData.lastDate); lastDate.setHours(0,0,0,0);
+            let diffDays = Math.round((today - lastDate) / (1000 * 60 * 60 * 24));
+            let restDays = userData.restDays || [false,false,false,false,false,false,false];
+            
+            if (diffDays <= 1) return { streak, freezesLeft, frozeYesterday: false };
+            
+            let missedActiveDays = 0;
+            for (let i = 1; i < diffDays; i++) {
+                let checkDate = new Date(lastDate); checkDate.setDate(checkDate.getDate() + i);
+                if (!restDays[(checkDate.getDay() + 6) % 7]) {
+                    missedActiveDays++;
+                }
+            }
+
+            if (missedActiveDays > 0) {
+                if (freezesLeft >= missedActiveDays) {
+                    // Mrazáky tě zachrání vizuálně
+                    return { streak, freezesLeft: freezesLeft - missedActiveDays, frozeYesterday: true };
+                } else {
+                    return { streak: 0, freezesLeft, frozeYesterday: false };
+                }
+            }
+            return { streak, freezesLeft, frozeYesterday: false };
+        }
+        
+        function getAuraClass(streak) {
+            if (streak >= 730) return 'aura-730';
+            if (streak >= 638) return 'aura-638';
+            if (streak >= 547) return 'aura-547';
+            if (streak >= 456) return 'aura-456';
+            if (streak >= 365) return 'aura-365';
+            if (streak >= 300) return 'aura-300';
+            if (streak >= 250) return 'aura-250';
+            if (streak >= 200) return 'aura-200';
+            if (streak >= 150) return 'aura-150';
+            if (streak >= 100) return 'aura-100';
+            if (streak >= 75) return 'aura-75';
+            if (streak >= 50) return 'aura-50';
+            if (streak >= 30) return 'aura-30';
+            if (streak >= 15) return 'aura-15';
+            if (streak >= 7) return 'aura-7';
+            return '';
         }
 
         const ACHIEVEMENTS = [
@@ -259,21 +418,21 @@
             { id: 'cnt_500', cat: 'Počet tréninků', title: '500x: Sparťan', icon: '🛡️', req: (d) => getWorkoutCount(d) >= 500 },
             { id: 'cnt_1000', cat: 'Počet tréninků', title: '1000x: Legenda prkna', icon: '🦸‍♂️', req: (d) => getWorkoutCount(d) >= 1000 },
             
-            { id: 'str_3', cat: 'Série (Streak)', title: '3 dny: Hattrick', icon: '🎩', req: (d) => calculateCurrentStreak(d) >= 3 },
-            { id: 'str_5', cat: 'Série (Streak)', title: '5 dní: Jiskra', icon: '✨', req: (d) => calculateCurrentStreak(d) >= 5 },
-            { id: 'str_10', cat: 'Série (Streak)', title: '10 dní: Plamen', icon: '🔥', req: (d) => calculateCurrentStreak(d) >= 10 },
-            { id: 'str_14', cat: 'Série (Streak)', title: '14 dní: Bez výmluv', icon: '🗓️', req: (d) => calculateCurrentStreak(d) >= 14 },
-            { id: 'str_21', cat: 'Série (Streak)', title: '21 dní: Nový zvyk', icon: '🧠', req: (d) => calculateCurrentStreak(d) >= 21 },
-            { id: 'str_30', cat: 'Série (Streak)', title: '30 dní: Požár', icon: '🚒', req: (d) => calculateCurrentStreak(d) >= 30 },
-            { id: 'str_50', cat: 'Série (Streak)', title: '50 dní: Zlatý střed', icon: '🪙', req: (d) => calculateCurrentStreak(d) >= 50 },
-            { id: 'str_100', cat: 'Série (Streak)', title: '100 dní: Maraton', icon: '💯', req: (d) => calculateCurrentStreak(d) >= 100 },
-            { id: 'str_365', cat: 'Série (Streak)', title: '365 dní: Železný rok', icon: '⚔️', req: (d) => calculateCurrentStreak(d) >= 365 },
+            { id: 'str_3', cat: 'Série (Streak)', title: '3 dny: Hattrick', icon: '🎩', req: (d) => calculateCurrentStreak(d).streak >= 3 },
+            { id: 'str_5', cat: 'Série (Streak)', title: '5 dní: Jiskra', icon: '✨', req: (d) => calculateCurrentStreak(d).streak >= 5 },
+            { id: 'str_10', cat: 'Série (Streak)', title: '10 dní: Plamen', icon: '🔥', req: (d) => calculateCurrentStreak(d).streak >= 10 },
+            { id: 'str_14', cat: 'Série (Streak)', title: '14 dní: Bez výmluv', icon: '🗓️', req: (d) => calculateCurrentStreak(d).streak >= 14 },
+            { id: 'str_21', cat: 'Série (Streak)', title: '21 dní: Nový zvyk', icon: '🧠', req: (d) => calculateCurrentStreak(d).streak >= 21 },
+            { id: 'str_30', cat: 'Série (Streak)', title: '30 dní: Požár', icon: '🚒', req: (d) => calculateCurrentStreak(d).streak >= 30 },
+            { id: 'str_50', cat: 'Série (Streak)', title: '50 dní: Zlatý střed', icon: '🪙', req: (d) => calculateCurrentStreak(d).streak >= 50 },
+            { id: 'str_100', cat: 'Série (Streak)', title: '100 dní: Maraton', icon: '💯', req: (d) => calculateCurrentStreak(d).streak >= 100 },
+            { id: 'str_365', cat: 'Série (Streak)', title: '365 dní: Železný rok', icon: '⚔️', req: (d) => calculateCurrentStreak(d).streak >= 365 },
 
             { id: 'ach_spring', cat: 'Styl a disciplína', title: 'Jarní probuzení (30x jaro)', icon: '🌱', req: (d) => getSeasonWorkoutCount(d, [2, 3, 4]) >= 30 },
             { id: 'ach_summer', cat: 'Styl a disciplína', title: 'Plážová forma (30x léto)', icon: '☀️', req: (d) => getSeasonWorkoutCount(d, [5, 6, 7]) >= 30 },
             { id: 'ach_autumn', cat: 'Styl a disciplína', title: 'Podzimní vytrvalec (30x podzim)', icon: '🍂', req: (d) => getSeasonWorkoutCount(d, [8, 9, 10]) >= 30 },
             { id: 'ach_winter', cat: 'Styl a disciplína', title: 'Zimní voják (30x zima)', icon: '❄️', req: (d) => getSeasonWorkoutCount(d, [11, 0, 1]) >= 30 },
-            { id: 'ach_heavy', cat: 'Styl a disciplína', title: 'Těžkooděnec (7 dní bez pauzy)', icon: '🛡️', req: (d) => calculateCurrentStreak(d) >= 7 && !(d.restDays || []).some(r => r === true) },
+            { id: 'ach_heavy', cat: 'Styl a disciplína', title: 'Těžkooděnec (7 dní bez pauzy)', icon: '🛡️', req: (d) => calculateCurrentStreak(d).streak >= 7 && !(d.restDays || []).some(r => r === true) },
             { id: 'ach_weekend', cat: 'Styl a disciplína', title: 'Víkendový válečník (So+Ne)', icon: '⚔️', req: (d) => (d.achievements && d.achievements['ach_weekend']) },
             { id: 'ach_second_wind', cat: 'Styl a disciplína', title: 'Druhý dech (Rekord po 30d)', icon: '🧟‍♂️', req: (d) => (d.achievements && d.achievements['ach_second_wind']) },
 
@@ -331,29 +490,15 @@
             return '💎 Titanový Terminátor';
         }
 
-        function calculateCurrentStreak(userData) {
-            let streak = userData.streak || 0;
-            if (!userData.lastDate || streak === 0) return 0;
-            let today = new Date(); today.setHours(0,0,0,0);
-            let lastDate = new Date(userData.lastDate); lastDate.setHours(0,0,0,0);
-            let diffDays = Math.round((today - lastDate) / (1000 * 60 * 60 * 24));
-            let restDays = userData.restDays || [false,false,false,false,false,false,false];
-            if (diffDays <= 1) return streak;
-            for (let i = 1; i < diffDays; i++) {
-                let checkDate = new Date(lastDate); checkDate.setDate(checkDate.getDate() + i);
-                if (!restDays[(checkDate.getDay() + 6) % 7]) return 0;
-            }
-            return streak;
-        }
-
         function getActivityStatus(userData) {
-            if (!userData.lastDate) return 'sleep';
+            let streakData = calculateCurrentStreak(userData);
+            if (streakData.streak === 0) return 'sleep';
+            
             let today = new Date(); today.setHours(0,0,0,0);
             let lastDate = new Date(userData.lastDate); lastDate.setHours(0,0,0,0);
             let diffDays = Math.round((today - lastDate) / (1000 * 60 * 60 * 24));
             if (diffDays === 0) return 'today';
-            if (diffDays === 1) return 'yesterday';
-            return 'sleep';
+            return 'yesterday';
         }
 
         function renderAchievements(containerId, userData, isOwnProfile = false) {
@@ -399,6 +544,40 @@
             db.ref(`users/${currentUser}`).update({ showcase: showcase });
         }
 
+        function renderHeatmap(containerId, userData) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            let historyDates = {};
+            if (userData.history) {
+                Object.values(userData.history).forEach(h => {
+                    let dStr = new Date(h.timestamp).toLocaleDateString('en-CA');
+                    if (!historyDates[dStr] || h.duration > historyDates[dStr]) {
+                        historyDates[dStr] = h.duration;
+                    }
+                });
+            }
+            let maxPlank = userData.longestPlank || 0;
+            
+            let today = new Date();
+            for(let i = 29; i >= 0; i--) {
+                let d = new Date(today);
+                d.setDate(d.getDate() - i);
+                let dStr = d.toLocaleDateString('en-CA');
+                
+                let boxClass = "hm-box";
+                if (historyDates[dStr]) {
+                    boxClass += " active";
+                    if (historyDates[dStr] >= maxPlank && historyDates[dStr] > 10) boxClass += " record";
+                }
+                container.innerHTML += `<div class="${boxClass}" title="${dStr}"></div>`;
+            }
+        }
+
+        function openEncyclopedia() {
+            hideAll();
+            document.getElementById('encyclopedia-section').style.display = 'block';
+        }
+
         db.ref('users').on('value', (snapshot) => {
             allUsersData = snapshot.val() || {};
             updateLeaderboard();
@@ -426,7 +605,7 @@
         function updateLeaderboard() {
             let usersArray = Object.keys(allUsersData).map(key => {
                 let u = allUsersData[key];
-                let displayStreak = calculateCurrentStreak(u);
+                let streakData = calculateCurrentStreak(u);
                 let thisMonthTime = 0;
                 let now = new Date();
                 if (u.history) {
@@ -439,8 +618,9 @@
                 }
                 
                 let achCount = ACHIEVEMENTS.filter(a => a.req(u)).length;
+                let avatarData = getAvatarAndStatus(u);
                 
-                return { id: key, ...u, displayStreak, thisMonthTime, actStatus: getActivityStatus(u), achCount };
+                return { id: key, ...u, displayStreak: streakData.streak, thisMonthTime, actStatus: getActivityStatus(u), achCount, avatarHtml: avatarData.html };
             });
 
             let globalMaxPlank = Math.max(...usersArray.map(u => u.longestPlank || 0));
@@ -497,11 +677,13 @@
                     let diffFormat = currentSort === 'streak' ? `${diffValue}&nbsp;dní` : formatTimeLong(diffValue);
                     diffTextHtml = `<div class="diff-text">Chybí ${diffFormat} na ${usersArray[index-1].name}&nbsp;⬆️</div>`;
                 }
+                
+                let auraClass = getAuraClass(user.displayStreak);
 
                 statsHtml += `
-                    <div class="stat-item">
+                    <div class="stat-item ${auraClass}">
                         ${rankVisual}
-                        <div style="font-size:35px; margin-right:15px;">${user.avatar || '👤'}</div>
+                        <div style="font-size:35px; margin-right:15px; position:relative;">${user.avatarHtml}</div>
                         <div class="player-info">
                             <div class="player-name-row">
                                 <span class="status-dot status-${user.actStatus}"></span>
@@ -529,7 +711,7 @@
         });
 
         function hideAll() {
-            ['setup-section', 'profile-section', 'workout-section', 'public-profile-section'].forEach(id => document.getElementById(id).style.display = 'none');
+            ['setup-section', 'profile-section', 'workout-section', 'public-profile-section', 'encyclopedia-section'].forEach(id => document.getElementById(id).style.display = 'none');
         }
 
         function logout() {
@@ -543,15 +725,18 @@
             if(!data) return;
             hideAll(); document.getElementById('public-profile-section').style.display = 'block';
             
+            let streakData = calculateCurrentStreak(data);
+            let avatarData = getAvatarAndStatus(data);
+            
             document.getElementById('pub-profile-name').textContent = data.name;
-            document.getElementById('pub-avatar-display').textContent = data.avatar || '👤';
-            let streak = calculateCurrentStreak(data);
-            document.getElementById('pub-streak-display').textContent = streak > 0 ? `🔥 Série: ${streak} dní` : '';
+            document.getElementById('pub-avatar-display').innerHTML = avatarData.html;
+            document.getElementById('pub-streak-display').textContent = streakData.streak > 0 ? `🔥 Série: ${streakData.streak} dní` : '';
             document.getElementById('pub-level-display').textContent = getLevel(data.totalTime || 0);
             document.getElementById('pub-total-time').textContent = formatTimeLong(data.totalTime || 0);
             document.getElementById('pub-max-time').textContent = formatTimeLong(data.longestPlank || 0);
             document.getElementById('pub-workout-count').textContent = getWorkoutCount(data);
             
+            renderHeatmap('pub-heatmap', data);
             renderAchievements('pub-achievements-container', data, false);
 
             const pubHistoryList = document.getElementById('pub-history-list');
@@ -593,10 +778,14 @@
             const data = allUsersData[currentUser];
             if(!data) return;
             
-            let streak = calculateCurrentStreak(data);
+            let streakData = calculateCurrentStreak(data);
+            let avatarData = getAvatarAndStatus(data);
+            
             document.getElementById('profile-name').textContent = data.name;
-            document.getElementById('avatar-display').textContent = data.avatar || '👤';
-            document.getElementById('streak-display').textContent = streak > 0 ? `🔥 Série: ${streak} dní` : '';
+            document.getElementById('avatar-display').innerHTML = avatarData.html;
+            
+            document.getElementById('streak-display').textContent = streakData.streak > 0 ? `🔥 Série: ${streakData.streak} dní` : '';
+            document.getElementById('freeze-display').textContent = `🧊 Mrazáky: ${streakData.freezesLeft}`;
             document.getElementById('level-display').textContent = getLevel(data.totalTime || 0);
 
             let restDays = data.restDays || [false,false,false,false,false,false,false];
@@ -624,12 +813,6 @@
             }
         }
 
-        function changeAvatar() {
-            let current = document.getElementById('avatar-display').textContent;
-            let nextIdx = (avatars.indexOf(current) + 1) % avatars.length;
-            db.ref(`users/${currentUser}`).update({ avatar: avatars[nextIdx] });
-        }
-
         document.querySelectorAll('.day-box').forEach(box => {
             box.addEventListener('click', () => {
                 if (!currentUser) return;
@@ -651,7 +834,7 @@
             
             db.ref('users').push({ 
                 name: name,
-                totalTime: 0, longestPlank: 0, streak: 0, lastDate: null, avatar: '👤',
+                totalTime: 0, longestPlank: 0, streak: 0, lastDate: null, freezesUsed: 0,
                 restDays: [false,false,false,false,false,false,false],
                 achievements: {}, showcase: []
             }).then(() => {
@@ -662,10 +845,8 @@
 
         function deleteProfile() {
             if (!currentUser) return;
-            
             let enteredPin = prompt("Pro smazání profilu zadej administrátorský PIN:");
             if (enteredPin === null) return;
-            
             if (enteredPin === "8213") {
                 if (confirm("Opravdu smazat profil? Vše zmizí a akci nelze vrátit!")) {
                     db.ref(`users/${currentUser}`).remove().then(logout);
@@ -677,10 +858,8 @@
 
         function deleteWorkoutLog(logId) {
             if (!currentUser) return;
-            
             let enteredPin = prompt("Pro smazání tréninku zadej administrátorský PIN:");
             if (enteredPin === null) return;
-            
             if (enteredPin === "8213") {
                 if (!confirm("Smazat tento trénink? Čas se odečte ze statistik.")) return;
                 db.ref(`users/${currentUser}/history/${logId}`).remove().then(() => {
@@ -734,7 +913,7 @@
             playSound('gong');
             
             const data = allUsersData[currentUser];
-            let currentStreak = calculateCurrentStreak(data);
+            let streakData = calculateCurrentStreak(data);
             const isPersonalRecord = secondsElapsed > (data.longestPlank || 0) && secondsElapsed > 10;
             
             if (isPersonalRecord) confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
@@ -751,7 +930,7 @@
             let day = d.getDay(); 
             let hour = d.getHours();
 
-            if (isPersonalRecord && currentStreak >= 30) achUpdates['ach_second_wind'] = true;
+            if (isPersonalRecord && streakData.streak >= 30) achUpdates['ach_second_wind'] = true;
             
             if (day === 0 || day === 6) {
                 let historyArr = Object.values(data.history || {});
@@ -780,8 +959,13 @@
 
             let todayStr = new Date().toLocaleDateString('en-CA');
             if (data.lastDate !== todayStr) {
-                updates.streak = currentStreak + 1;
+                updates.streak = streakData.streak + 1;
                 updates.lastDate = todayStr;
+                
+                if (streakData.frozeYesterday) {
+                    let totalMissed = Math.round((new Date(todayStr).setHours(0,0,0,0) - new Date(data.lastDate).setHours(0,0,0,0)) / (1000 * 60 * 60 * 24)) - 1;
+                    updates.freezesUsed = (data.freezesUsed || 0) + totalMissed;
+                }
             }
 
             db.ref(`users/${currentUser}/history`).push({ duration: secondsElapsed, timestamp: Date.now() });
